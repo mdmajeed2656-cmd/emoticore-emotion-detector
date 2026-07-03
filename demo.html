@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoticore — Live Demo</title>
+<meta name="description" content="Live in-browser demonstration of Emoticore facial emotion analysis. All inference runs locally — no video leaves your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070d;
+  --bg-raise:#090d17;
+  --panel:#0b101c;
+  --panel-2:#0d1424;
+  --ink:#e8edf6;
+  --ink-2:#98a2b8;
+  --ink-3:#5c6784;
+  --line:rgba(148,163,184,0.12);
+  --line-soft:rgba(148,163,184,0.07);
+  --cyan:#38e1ff;
+  --cyan-hot:#00f5ff;
+  --violet:#8b5cf6;
+  --ok:#34d399;
+  --warn:#fbbf24;
+  --crit:#f87171;
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono','Courier New',monospace;
+  --wrap:1240px;
+  --nav-h:64px;
+  --r:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-body);font-size:16px;line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+::selection{background:rgba(56,225,255,0.25);color:#fff;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:#1a2338;border-radius:5px;border:2px solid var(--bg);}
+a{color:inherit;text-decoration:none;}
+button{font:inherit;cursor:pointer;background:none;border:none;color:inherit;}
+img,svg,canvas,video{display:block;}
+h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
+.mono{font-family:var(--font-mono);}
+.num{font-variant-numeric:tabular-nums;}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px;width:100%;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--font-body);font-weight:600;font-size:0.92rem;
+  padding:13px 26px;border-radius:var(--r);
+  border:1px solid transparent;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--cyan);color:#03121a;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(56,225,255,0.35);background:var(--cyan-hot);}
+.btn-ghost{border-color:var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:rgba(56,225,255,0.5);background:rgba(56,225,255,0.06);}
+.btn-danger{border:1px solid rgba(248,113,113,0.4);color:var(--crit);}
+.btn-danger:hover{background:rgba(248,113,113,0.08);}
+
+/* nav */
+.nav{
+  position:sticky;top:0;z-index:100;height:var(--nav-h);
+  display:flex;align-items:center;
+  background:rgba(5,7,13,0.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.nav-inner{max-width:var(--wrap);margin:0 auto;padding:0 28px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:800;font-size:1.02rem;letter-spacing:0.06em;color:#fff;}
+.brand-mark{width:26px;height:26px;position:relative;flex:none;border:1px solid rgba(56,225,255,0.8);border-radius:3px;}
+.brand-mark::before{content:'';position:absolute;inset:5px;background:linear-gradient(135deg,var(--cyan),var(--violet));border-radius:2px;animation:markPulse 3.2s ease-in-out infinite;}
+@keyframes markPulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+.brand em{font-style:normal;color:var(--cyan);}
+.nav-right{display:flex;align-items:center;gap:18px;}
+.back-link{font-size:0.88rem;color:var(--ink-2);transition:color .2s ease;font-weight:500;}
+.back-link:hover{color:#fff;}
+.env-pill{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.16em;color:var(--cyan);
+  border:1px solid rgba(56,225,255,0.3);border-radius:20px;padding:6px 14px;
+  background:rgba(56,225,255,0.05);
+}
+.env-pill .pip{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pipPulse 1.8s ease-in-out infinite;}
+@keyframes pipPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,225,255,0.5);}50%{box-shadow:0 0 0 6px rgba(56,225,255,0);}}
+
+/* page head */
+.page-head{padding:44px 0 28px;}
+.tag{
+  font-family:var(--font-mono);font-size:0.72rem;font-weight:500;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--cyan);
+  display:inline-flex;align-items:center;gap:10px;
+}
+.tag::before{content:'';width:22px;height:1px;background:var(--cyan);opacity:0.7;}
+.page-head h1{font-size:clamp(1.6rem,3.4vw,2.4rem);font-weight:700;color:#fff;margin:14px 0 10px;}
+.page-head .sub{color:var(--ink-2);max-width:64ch;font-size:0.98rem;}
+.privacy-note{
+  display:inline-flex;align-items:center;gap:9px;margin-top:16px;
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.1em;
+  color:var(--ok);border:1px solid rgba(52,211,153,0.3);border-radius:20px;
+  padding:7px 15px;background:rgba(52,211,153,0.06);
+}
+.privacy-note svg{width:13px;height:13px;flex:none;}
+
+/* console */
+.demo-main{flex:1;padding-bottom:64px;}
+.dash{
+  border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,0.5);
+}
+.dash-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px 20px;border-bottom:1px solid var(--line-soft);
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;
+}
+.dash-bar .l{display:flex;align-items:center;gap:16px;color:var(--ink-3);flex-wrap:wrap;}
+.dash-bar .r{display:flex;align-items:center;gap:14px;}
+.state-pill{display:flex;align-items:center;gap:8px;color:var(--ink-3);transition:color .3s ease;}
+.state-pill .pip{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.state-pill.live{color:var(--ok);}
+.state-pill.live .pip{animation:pipPulse2 1.6s ease-in-out infinite;}
+@keyframes pipPulse2{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.5);}50%{box-shadow:0 0 0 6px rgba(52,211,153,0);}}
+.stop-btn{
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;
+  padding:6px 13px;border-radius:3px;
+  border:1px solid rgba(248,113,113,0.4);color:var(--crit);
+  transition:background .2s ease;display:none;
+}
+.stop-btn:hover{background:rgba(248,113,113,0.1);}
+
+.dash-grid{display:grid;grid-template-columns:1.25fr 0.75fr;}
+.stage{
+  position:relative;border-right:1px solid var(--line-soft);
+  background:#04060b;min-height:480px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.feed-wrap{position:relative;max-width:100%;}
+#cam{width:100%;height:100%;transform:scaleX(-1);object-fit:fill;background:#04060b;}
+#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.scanline{
+  position:absolute;left:0;right:0;top:0;height:2px;z-index:3;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(56,225,255,0.85),transparent);
+  box-shadow:0 0 14px rgba(56,225,255,0.7);
+  animation:scanSweep 5s linear infinite;
+  display:none;
+}
+@keyframes scanSweep{0%{top:0;}100%{top:100%;}}
+.hud{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.1em;color:rgba(152,162,184,0.85);
+  display:none;
+}
+.hud .tl{position:absolute;top:12px;left:14px;}
+.hud .tr{position:absolute;top:12px;right:14px;color:var(--ok);}
+.hud .bl{position:absolute;bottom:12px;left:14px;}
+.hud .br{position:absolute;bottom:12px;right:14px;}
+
+/* start / status overlay */
+.gate{
+  position:absolute;inset:0;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgba(56,225,255,0.06), transparent 70%),
+    rgba(4,6,11,0.88);
+  text-align:center;padding:30px;
+}
+.gate .reticle{
+  width:74px;height:74px;position:relative;margin-bottom:4px;
+}
+.gate .reticle::before,.gate .reticle::after{
+  content:'';position:absolute;inset:0;border:1px solid rgba(56,225,255,0.5);border-radius:50%;
+}
+.gate .reticle::after{
+  inset:14px;border-color:rgba(56,225,255,0.9);
+  border-top-color:transparent;
+  animation:spin 2.6s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.gate h2{font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.02em;}
+.gate p{font-size:0.85rem;color:var(--ink-2);max-width:44ch;}
+.gate .gate-status{
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.16em;color:var(--cyan);
+  text-transform:uppercase;min-height:1.2em;
+}
+.gate .gate-status.err{color:var(--crit);}
+.gate.hidden{display:none;}
+
+/* sidebar */
+.side{padding:24px 24px 20px;display:flex;flex-direction:column;min-height:480px;}
+.side h4{
+  font-family:var(--font-mono);font-size:0.66rem;font-weight:500;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;
+}
+.erow{margin-bottom:11px;}
+.erow .line1{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.74rem;margin-bottom:5px;}
+.erow .line1 .en{color:var(--ink);}
+.erow .line1 .ev{color:var(--cyan);font-variant-numeric:tabular-nums;}
+.erow .track{height:5px;border-radius:3px;background:rgba(148,163,184,0.1);overflow:hidden;}
+.erow .fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .5s cubic-bezier(.4,0,.2,1);}
+.erow.dominant .line1 .en{color:var(--cyan-hot);}
+
+.threat{
+  margin-top:auto;padding-top:18px;border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;gap:18px;
+}
+.gauge{position:relative;width:88px;height:88px;flex:none;}
+.gauge svg{width:100%;height:100%;transform:rotate(135deg);}
+.gauge .g-track{fill:none;stroke:rgba(148,163,184,0.12);stroke-width:7;stroke-linecap:round;}
+.gauge .g-val{fill:none;stroke:var(--ok);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1), stroke .6s ease;}
+.gauge .g-read{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono);}
+.gauge .g-num{font-size:1.1rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;}
+.gauge .g-cap{font-size:0.5rem;letter-spacing:0.18em;color:var(--ink-3);text-transform:uppercase;margin-top:2px;}
+.threat-info .t-status{
+  font-family:var(--font-mono);font-size:0.84rem;font-weight:600;letter-spacing:0.1em;
+  display:flex;align-items:center;gap:9px;margin-bottom:6px;transition:color .6s ease;
+}
+.threat-info .t-status .dotp{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;flex:none;}
+.threat-info .t-desc{font-size:0.78rem;color:var(--ink-3);max-width:28ch;line-height:1.5;}
+.t-low{color:var(--ok);}
+.t-elev{color:var(--warn);}
+.t-high{color:var(--crit);}
+.t-idle{color:var(--ink-3);}
+
+.side-log{
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);
+}
+.tele-log{
+  font-family:var(--font-mono);font-size:0.66rem;line-height:1.75;
+  color:var(--ink-3);height:118px;overflow:hidden;position:relative;
+}
+.tele-log::after{content:'';position:absolute;top:0;left:0;right:0;height:22px;background:linear-gradient(180deg,var(--panel) 0%,transparent 100%);pointer-events:none;}
+.tele-log .ln{display:flex;gap:8px;animation:logIn .4s ease;}
+@keyframes logIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.tele-log .ts{color:var(--ink-3);opacity:0.7;flex:none;}
+.tele-log .ok{color:var(--ok);}
+.tele-log .warn{color:var(--warn);}
+.tele-log .crit{color:var(--crit);}
+.tele-log .info{color:var(--ink-2);}
+
+/* bottom strip */
+.dash-strip{
+  border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;
+  font-family:var(--font-mono);font-size:0.66rem;color:var(--ink-3);
+  overflow:hidden;white-space:nowrap;
+}
+.dash-strip .cell{padding:11px 20px;border-right:1px solid var(--line-soft);display:flex;gap:8px;align-items:center;flex:none;}
+.dash-strip .cell b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums;}
+
+/* footer */
+.mini-footer{
+  border-top:1px solid var(--line-soft);background:var(--bg-raise);
+  padding:20px 0;
+  font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.08em;color:var(--ink-3);
+}
+.mini-footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+
+@media (max-width:960px){
+  .dash-grid{grid-template-columns:1fr;}
+  .stage{border-right:none;border-bottom:1px solid var(--line-soft);min-height:340px;}
+  .side{min-height:0;}
+}
+@media (max-width:560px){
+  .nav-right .env-pill{display:none;}
+  .page-head h1{font-size:1.5rem;}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  .scanline{display:none !important;}
+  .gate .reticle::after{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="brand-mark"></span>EMOTI<em>CORE</em></a>
+    <div class="nav-right">
+      <span class="env-pill"><span class="pip"></span>ON-DEVICE INFERENCE</span>
+      <a href="index.html" class="back-link">← Back to overview</a>
+    </div>
+  </div>
+</nav>
+
+<main class="demo-main">
+  <div class="wrap">
+    <div class="page-head">
+      <span class="tag">Live demonstration</span>
+      <h1>Facial emotion analysis — running in your browser.</h1>
+      <p class="sub">This is a real, working demo of Emoticore's facial signal pipeline. Grant camera access and the system will detect faces, classify expressions, and compute a live threat index — entirely on this device.</p>
+      <span class="privacy-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+        NO VIDEO LEAVES YOUR DEVICE — ALL INFERENCE IS LOCAL
+      </span>
+    </div>
+
+    <div class="dash">
+      <div class="dash-bar">
+        <div class="l">
+          <span>EMOTICORE OPS v4.2 · LIVE DEMO</span>
+          <span class="num" id="clock">00:00:00 UTC</span>
+        </div>
+        <div class="r">
+          <button class="stop-btn" id="stop-btn">TERMINATE FEED</button>
+          <span class="state-pill" id="state-pill"><span class="pip"></span><span id="state-text">STANDBY</span></span>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="stage" id="stage">
+          <div class="feed-wrap" id="feed-wrap">
+            <video id="cam" autoplay muted playsinline></video>
+            <canvas id="overlay"></canvas>
+            <div class="scanline" id="scanline"></div>
+            <div class="hud num" id="hud">
+              <span class="tl" id="hud-subj">SUBJ — · SEARCHING</span>
+              <span class="tr">● REC</span>
+              <span class="bl" id="hud-res">—</span>
+              <span class="br" id="hud-lat">INFER — ms</span>
+            </div>
+          </div>
+
+          <div class="gate" id="gate">
+            <div class="reticle" id="reticle" style="display:none"></div>
+            <h2 id="gate-title">Initialize live scan</h2>
+            <p id="gate-copy">Your browser will ask for camera permission. The video stream is processed locally and never uploaded.</p>
+            <div class="gate-status" id="gate-status"></div>
+            <button class="btn btn-primary" id="start-btn">Start camera scan →</button>
+          </div>
+        </div>
+
+        <div class="side">
+          <h4>Affect telemetry — live</h4>
+          <div id="emotion-rows"></div>
+          <div class="threat">
+            <div class="gauge">
+              <svg viewBox="0 0 100 100">
+                <circle class="g-track" cx="50" cy="50" r="42" stroke-dasharray="198 264"/>
+                <circle class="g-val" id="gauge-val" cx="50" cy="50" r="42" stroke-dasharray="198 264" stroke-dashoffset="198"/>
+              </svg>
+              <div class="g-read">
+                <span class="g-num num" id="gauge-num">—</span>
+                <span class="g-cap">Threat idx</span>
+              </div>
+            </div>
+            <div class="threat-info">
+              <div class="t-status t-idle" id="threat-status"><span class="dotp"></span><span id="threat-label">STANDBY</span></div>
+              <p class="t-desc" id="threat-desc">Waiting for camera feed to begin analysis.</p>
+            </div>
+          </div>
+          <div class="side-log">
+            <h4>Event stream</h4>
+            <div class="tele-log" id="log"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-strip num">
+        <div class="cell">FPS <b id="st-fps">—</b></div>
+        <div class="cell">INFERENCE <b id="st-lat">— ms</b></div>
+        <div class="cell">FACES <b id="st-faces">0</b></div>
+        <div class="cell">RESOLUTION <b id="st-res">—</b></div>
+        <div class="cell">ENGINE <b id="st-engine">STANDBY</b></div>
+        <div class="cell">PRIVACY <b style="color:var(--ok)">ON-DEVICE</b></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="mini-footer">
+  <div class="wrap">
+    <span>© 2026 EMOTICORE SYSTEMS, INC.</span>
+    <span>DEMO BUILD · FACIAL PIPELINE ONLY · SPEECH MODULE COMING SOON</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+var MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/model';
+var SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.js';
+
+var video = document.getElementById('cam');
+var overlay = document.getElementById('overlay');
+var octx = overlay.getContext('2d');
+var feedWrap = document.getElementById('feed-wrap');
+var gate = document.getElementById('gate');
+var gateTitle = document.getElementById('gate-title');
+var gateCopy = document.getElementById('gate-copy');
+var gateStatus = document.getElementById('gate-status');
+var reticle = document.getElementById('reticle');
+var startBtn = document.getElementById('start-btn');
+var stopBtn = document.getElementById('stop-btn');
+var statePill = document.getElementById('state-pill');
+var stateText = document.getElementById('state-text');
+var hud = document.getElementById('hud');
+var scanline = document.getElementById('scanline');
+var logEl = document.getElementById('log');
+
+var running = false;
+var stream = null;
+
+/* ---------- clock ---------- */
+function pad(n, w){ n = String(n); while(n.length < w) n = '0' + n; return n; }
+function stamp(){
+  var d = new Date();
+  return pad(d.getUTCHours(),2)+':'+pad(d.getUTCMinutes(),2)+':'+pad(d.getUTCSeconds(),2)+'.'+pad(d.getUTCMilliseconds(),3);
+}
+setInterval(function(){
+  var d = new Date();
+  document.getElementById('clock').textContent = pad(d.getUTCHours(),2)+':'+pad(d.getUTCMinutes(),2)+':'+pad(d.getUTCSeconds(),2)+' UTC';
+}, 250);
+
+/* ---------- event log ---------- */
+function log(cls, text){
+  var ln = document.createElement('div');
+  ln.className = 'ln';
+  ln.innerHTML = '<span class="ts num">' + stamp() + '</span><span class="' + cls + '">' + text + '</span>';
+  logEl.appendChild(ln);
+  while(logEl.children.length > 6) logEl.removeChild(logEl.firstChild);
+}
+log('info', 'console initialized · awaiting operator');
+
+/* ---------- emotion rows ---------- */
+var EMOTIONS = [
+  {key:'neutral',   label:'Neutral'},
+  {key:'happy',     label:'Happy'},
+  {key:'surprised', label:'Surprised'},
+  {key:'sad',       label:'Sad'},
+  {key:'angry',     label:'Angry'},
+  {key:'fearful',   label:'Fearful'},
+  {key:'disgusted', label:'Disgusted'}
+];
+var rowEls = {};
+var smooth = {};
+(function buildRows(){
+  var host = document.getElementById('emotion-rows');
+  EMOTIONS.forEach(function(e){
+    smooth[e.key] = 0;
+    var d = document.createElement('div');
+    d.className = 'erow';
+    d.innerHTML = '<div class="line1"><span class="en">' + e.label + '</span><span class="ev num">0%</span></div>' +
+                  '<div class="track"><div class="fill"></div></div>';
+    host.appendChild(d);
+    rowEls[e.key] = {row:d, val:d.querySelector('.ev'), fill:d.querySelector('.fill')};
+  });
+})();
+
+/* ---------- threat gauge ---------- */
+var ARC = 198;
+var gaugeVal = document.getElementById('gauge-val');
+var gaugeNum = document.getElementById('gauge-num');
+var threatStatus = document.getElementById('threat-status');
+var threatLabel = document.getElementById('threat-label');
+var threatDesc = document.getElementById('threat-desc');
+var threatIdx = 0;
+var lastLevel = 'IDLE';
+function threatLevel(v){
+  if(v < 35) return {cls:'t-low', color:'#34d399', label:'LOW', desc:'Subject within nominal affect ranges.'};
+  if(v < 65) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Negative-affect cluster detected. Monitoring closely.'};
+  return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Strong negative-affect signal. In production an alert would dispatch to your SOC.'};
+}
+function renderThreat(v, hasFace){
+  gaugeNum.textContent = hasFace ? String(Math.round(v)) : '—';
+  gaugeVal.style.strokeDashoffset = String(ARC - (Math.min(v,100) / 100) * ARC);
+  if(!hasFace){
+    gaugeVal.style.stroke = 'rgba(148,163,184,0.4)';
+    threatStatus.className = 't-status t-idle';
+    threatLabel.textContent = 'SIGNAL LOST';
+    threatDesc.textContent = 'No face in frame. Re-acquire subject to resume scoring.';
+    if(lastLevel !== 'LOST'){ lastLevel = 'LOST'; }
+    return;
+  }
+  var s = threatLevel(v);
+  gaugeVal.style.stroke = s.color;
+  threatStatus.className = 't-status ' + s.cls;
+  threatLabel.textContent = s.label;
+  threatDesc.textContent = s.desc;
+  if(s.label !== lastLevel){
+    lastLevel = s.label;
+    log(s.label === 'LOW' ? 'ok' : s.label === 'ELEVATED' ? 'warn' : 'crit',
+        'threat index ' + Math.round(v) + ' → ' + s.label);
+  }
+}
+
+/* ---------- state pill ---------- */
+function setState(text, live){
+  stateText.textContent = text;
+  statePill.classList.toggle('live', !!live);
+}
+
+/* ---------- script loader ---------- */
+function loadScript(src){
+  return new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function(){ reject(new Error('script load failed')); };
+    document.head.appendChild(s);
+  });
+}
+
+/* ---------- gate helpers ---------- */
+function gateProgress(msg){
+  gateStatus.classList.remove('err');
+  gateStatus.textContent = msg;
+}
+function gateError(title, copy){
+  reticle.style.display = 'none';
+  startBtn.style.display = '';
+  startBtn.textContent = 'Retry →';
+  gateTitle.textContent = title;
+  gateCopy.textContent = copy;
+  gateStatus.classList.add('err');
+  gateStatus.textContent = 'ERROR';
+  setState('FAULT', false);
+}
+
+/* ---------- start sequence ---------- */
+var modelsReady = false;
+async function start(){
+  startBtn.style.display = 'none';
+  reticle.style.display = '';
+  gateTitle.textContent = 'Initializing';
+  gateCopy.textContent = 'Setting up the local inference engine.';
+  setState('BOOTING', false);
+
+  try{
+    if(typeof faceapi === 'undefined'){
+      gateProgress('LOADING INFERENCE ENGINE…');
+      log('info', 'fetching neural engine (~4 MB, first run only)');
+      await loadScript(SCRIPT_URL);
+    }
+  }catch(e){
+    gateError('Engine load failed', 'The AI engine could not be downloaded. Check your internet connection and retry.');
+    log('crit', 'engine download failed');
+    return;
+  }
+
+  try{
+    if(!modelsReady){
+      gateProgress('LOADING NEURAL NETWORKS…');
+      var t0 = performance.now();
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+      ]);
+      modelsReady = true;
+      log('ok', 'models loaded · ' + ((performance.now() - t0)/1000).toFixed(1) + 's');
+    }
+  }catch(e){
+    gateError('Model load failed', 'Neural network weights could not be downloaded. Check your connection and retry.');
+    log('crit', 'model download failed');
+    return;
+  }
+
+  try{
+    gateProgress('REQUESTING CAMERA ACCESS…');
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:1280}, height:{ideal:720}, facingMode:'user'},
+      audio:false
+    });
+  }catch(e){
+    if(e && (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError')){
+      gateError('Camera access denied', 'Emoticore needs camera access to run the demo. Allow camera permission in your browser and retry. Nothing is ever uploaded.');
+    }else if(e && e.name === 'NotFoundError'){
+      gateError('No camera found', 'No camera device was detected on this machine.');
+    }else{
+      gateError('Camera unavailable', 'The camera could not be started (' + (e && e.name ? e.name : 'unknown') + '). If you opened this file directly, try serving it from localhost (e.g. VS Code Live Server).');
+    }
+    log('crit', 'camera acquisition failed');
+    return;
+  }
+
+  video.srcObject = stream;
+  await new Promise(function(res){ video.onloadedmetadata = res; });
+  await video.play();
+
+  var vw = video.videoWidth, vh = video.videoHeight;
+  var ar = vw / vh;
+  feedWrap.style.aspectRatio = vw + ' / ' + vh;
+  feedWrap.style.width = 'min(100%, calc(66vh * ' + ar.toFixed(4) + '))';
+  document.getElementById('hud-res').textContent = vw + '×' + vh + ' · 30FPS';
+  document.getElementById('st-res').textContent = vw + '×' + vh;
+  document.getElementById('st-engine').textContent = 'TINY-YOLO + EXPR NET';
+
+  sizeOverlay();
+  gate.classList.add('hidden');
+  hud.style.display = 'block';
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) scanline.style.display = 'block';
+  stopBtn.style.display = 'inline-block';
+  setState('LIVE', true);
+  log('ok', 'camera stream up · ' + vw + '×' + vh);
+  log('info', 'scanning for subjects…');
+
+  running = true;
+  detectLoop();
+}
+
+/* ---------- stop ---------- */
+function stop(){
+  running = false;
+  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+  video.srcObject = null;
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  hud.style.display = 'none';
+  scanline.style.display = 'none';
+  stopBtn.style.display = 'none';
+  gate.classList.remove('hidden');
+  reticle.style.display = 'none';
+  startBtn.style.display = '';
+  startBtn.textContent = 'Start camera scan →';
+  gateTitle.textContent = 'Feed terminated';
+  gateCopy.textContent = 'The camera has been released. Start again anytime.';
+  gateStatus.textContent = '';
+  setState('STANDBY', false);
+  renderThreat(0, false);
+  gaugeNum.textContent = '—';
+  threatStatus.className = 't-status t-idle';
+  threatLabel.textContent = 'STANDBY';
+  threatDesc.textContent = 'Waiting for camera feed to begin analysis.';
+  document.getElementById('st-fps').textContent = '—';
+  document.getElementById('st-lat').textContent = '— ms';
+  document.getElementById('st-faces').textContent = '0';
+  document.getElementById('st-engine').textContent = 'STANDBY';
+  log('warn', 'feed terminated by operator');
+}
+stopBtn.addEventListener('click', stop);
+startBtn.addEventListener('click', start);
+
+/* ---------- overlay sizing ---------- */
+function sizeOverlay(){
+  var w = feedWrap.clientWidth, h = feedWrap.clientHeight;
+  overlay.width = w * DPR;
+  overlay.height = h * DPR;
+  octx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', function(){ if(running) sizeOverlay(); });
+
+/* ---------- detection loop ---------- */
+var frameCount = 0, fpsT0 = performance.now();
+var faceWasPresent = false;
+var lastDominant = '';
+
+async function detectLoop(){
+  if(!running) return;
+
+  var opts = new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: 0.4});
+  var t0 = performance.now();
+  var dets = [];
+  try{
+    dets = await faceapi.detectAllFaces(video, opts).withFaceLandmarks(true).withFaceExpressions();
+  }catch(e){
+    /* transient inference error — skip frame */
+  }
+  var lat = performance.now() - t0;
+
+  var W = feedWrap.clientWidth, H = feedWrap.clientHeight;
+  var resized = dets.length ? faceapi.resizeResults(dets, {width: W, height: H}) : [];
+
+  draw(resized, W, H);
+  telemetry(resized, lat);
+
+  frameCount++;
+  var now = performance.now();
+  if(now - fpsT0 >= 1000){
+    document.getElementById('st-fps').textContent = String(frameCount);
+    frameCount = 0;
+    fpsT0 = now;
+  }
+
+  requestAnimationFrame(detectLoop);
+}
+
+/* mirror x because the video is CSS-flipped for a natural selfie view */
+function mx(x, W){ return W - x; }
+
+function draw(dets, W, H){
+  octx.clearRect(0, 0, W, H);
+  if(!dets.length) return;
+
+  /* largest face = primary subject */
+  var primary = 0, maxA = 0;
+  dets.forEach(function(d, i){
+    var b = d.detection.box;
+    if(b.width * b.height > maxA){ maxA = b.width * b.height; primary = i; }
+  });
+
+  dets.forEach(function(d, i){
+    var b = d.detection.box;
+    var x = mx(b.x + b.width, W), y = b.y, w = b.width, h = b.height;
+    var isP = i === primary;
+    var col = isP ? 'rgba(56,225,255,0.95)' : 'rgba(148,163,184,0.55)';
+
+    /* corner brackets */
+    var L = Math.min(w, h) * 0.22;
+    octx.strokeStyle = col;
+    octx.lineWidth = isP ? 1.8 : 1.2;
+    octx.beginPath();
+    octx.moveTo(x, y + L); octx.lineTo(x, y); octx.lineTo(x + L, y);
+    octx.moveTo(x + w - L, y); octx.lineTo(x + w, y); octx.lineTo(x + w, y + L);
+    octx.moveTo(x + w, y + h - L); octx.lineTo(x + w, y + h); octx.lineTo(x + w - L, y + h);
+    octx.moveTo(x + L, y + h); octx.lineTo(x, y + h); octx.lineTo(x, y + h - L);
+    octx.stroke();
+
+    /* landmarks */
+    if(d.landmarks){
+      octx.fillStyle = isP ? 'rgba(56,225,255,0.7)' : 'rgba(148,163,184,0.35)';
+      d.landmarks.positions.forEach(function(p){
+        octx.beginPath();
+        octx.arc(mx(p.x, W), p.y, isP ? 1.4 : 1, 0, Math.PI * 2);
+        octx.fill();
+      });
+    }
+
+    /* label */
+    var conf = d.detection.score;
+    var domKey = topExpression(d.expressions);
+    octx.font = '10px "IBM Plex Mono", monospace';
+    octx.fillStyle = col;
+    var label = (isP ? 'SUBJ_01' : 'TRK_0' + (i + 1)) + ' · ' + domKey.toUpperCase() + ' · ' + conf.toFixed(2);
+    octx.fillText(label, x, Math.max(12, y - 8));
+  });
+}
+
+function topExpression(ex){
+  var best = 'neutral', bv = 0;
+  for(var k in ex){ if(ex[k] > bv){ bv = ex[k]; best = k; } }
+  return best;
+}
+
+function telemetry(dets, lat){
+  document.getElementById('st-lat').textContent = lat.toFixed(0) + ' ms';
+  document.getElementById('hud-lat').textContent = 'INFER ' + lat.toFixed(0) + ' ms';
+  document.getElementById('st-faces').textContent = String(dets.length);
+
+  var hasFace = dets.length > 0;
+
+  if(hasFace !== faceWasPresent){
+    faceWasPresent = hasFace;
+    if(hasFace) log('ok', 'subject acquired · conf ' + dets[0].detection.score.toFixed(2));
+    else log('warn', 'subject lost · signal dropped');
+  }
+  document.getElementById('hud-subj').textContent = hasFace
+    ? 'SUBJ_01 · LOCKED (' + dets.length + ' IN FRAME)'
+    : 'SUBJ — · SEARCHING';
+
+  if(!hasFace){
+    /* decay all bars and threat toward zero */
+    EMOTIONS.forEach(function(e){
+      smooth[e.key] *= 0.9;
+      var pct = Math.round(smooth[e.key] * 100);
+      rowEls[e.key].val.textContent = pct + '%';
+      rowEls[e.key].fill.style.width = pct + '%';
+      rowEls[e.key].row.classList.remove('dominant');
+    });
+    threatIdx *= 0.92;
+    renderThreat(threatIdx, false);
+    return;
+  }
+
+  /* primary = largest face */
+  var primary = dets[0], maxA = 0;
+  dets.forEach(function(d){
+    var b = d.detection.box;
+    if(b.width * b.height > maxA){ maxA = b.width * b.height; primary = d; }
+  });
+  var ex = primary.expressions;
+
+  var domKey = topExpression(ex);
+  EMOTIONS.forEach(function(e){
+    var target = ex[e.key] || 0;
+    smooth[e.key] += (target - smooth[e.key]) * 0.25;
+    var pct = Math.round(smooth[e.key] * 100);
+    rowEls[e.key].val.textContent = pct + '%';
+    rowEls[e.key].fill.style.width = pct + '%';
+    rowEls[e.key].row.classList.toggle('dominant', e.key === domKey);
+  });
+
+  if(domKey !== lastDominant && ex[domKey] > 0.45){
+    lastDominant = domKey;
+    log('info', 'dominant affect → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '%');
+  }
+
+  /* threat index: weighted negative affect, smoothed */
+  var raw = 100 * Math.min(1,
+    (ex.angry || 0) * 1.0 +
+    (ex.fearful || 0) * 0.85 +
+    (ex.disgusted || 0) * 0.5 +
+    (ex.sad || 0) * 0.2 +
+    (ex.surprised || 0) * 0.25
+  );
+  threatIdx += (raw - threatIdx) * 0.12;
+  renderThreat(threatIdx, true);
+}
+
+/* release camera when leaving the page */
+window.addEventListener('pagehide', function(){
+  if(stream) stream.getTracks().forEach(function(t){ t.stop(); });
+});
+
+})();
+</script>
+</body>
+</html>
