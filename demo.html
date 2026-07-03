@@ -142,8 +142,29 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .stage{
   position:relative;border-right:1px solid var(--line-soft);
   background:#04060b;min-height:480px;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;
   overflow:hidden;
+}
+.stage-main{
+  flex:1;min-height:0;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.vox-strip{
+  flex:none;width:100%;height:92px;position:relative;
+  border-top:1px solid var(--line-soft);background:#04060b;
+}
+#vox-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.vox-hud{
+  position:absolute;top:8px;left:14px;z-index:2;pointer-events:none;
+  font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.1em;
+  color:rgba(152,162,184,0.85);
+}
+.vox-off{
+  position:absolute;inset:0;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.16em;
+  color:var(--ink-3);background:rgba(4,6,11,0.75);
 }
 .feed-wrap{position:relative;max-width:100%;}
 #cam{width:100%;height:100%;transform:scaleX(-1);object-fit:fill;background:#04060b;}
@@ -248,6 +269,50 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .tele-log .crit{color:var(--crit);}
 .tele-log .info{color:var(--ink-2);}
 
+/* toggle chips */
+.chip{
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;
+  padding:6px 13px;border-radius:3px;
+  border:1px solid var(--line);color:var(--ink-3);
+  transition:color .2s ease, border-color .2s ease, background .2s ease;
+}
+.chip.on{color:var(--cyan);border-color:rgba(56,225,255,0.4);background:rgba(56,225,255,0.06);}
+.chip:disabled{opacity:0.35;cursor:not-allowed;}
+.chip:not(:disabled):hover{border-color:rgba(56,225,255,0.5);}
+
+/* vocal telemetry block */
+.vox-block{margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft);}
+.vx-state{font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;color:var(--ink-3);margin-bottom:10px;}
+.vx-state.calib{color:var(--warn);}
+.vx-state.ready{color:var(--ok);}
+
+/* transcript band */
+.transcript{
+  display:none;align-items:center;gap:16px;
+  border-top:1px solid var(--line-soft);
+  padding:11px 20px;
+  font-family:var(--font-mono);font-size:0.72rem;
+}
+.transcript.show{display:flex;}
+.transcript .t-label{flex:none;font-size:0.62rem;letter-spacing:0.18em;color:var(--ink-3);}
+.transcript .t-text{
+  flex:1;min-width:0;overflow:hidden;white-space:nowrap;
+  text-align:left;color:var(--ink-2);
+  position:relative;
+}
+.transcript .t-text::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:36px;z-index:1;
+  background:linear-gradient(90deg,var(--panel),transparent);pointer-events:none;
+}
+.transcript .t-text .wrap-inner{float:right;white-space:nowrap;}
+.transcript .t-interim{color:var(--ink-3);font-style:italic;}
+.transcript mark{
+  background:rgba(248,113,113,0.16);color:var(--crit);
+  padding:1px 4px;border-radius:2px;font-weight:600;
+}
+.transcript .t-flags{flex:none;font-size:0.62rem;letter-spacing:0.14em;color:var(--ink-3);}
+.transcript .t-flags.hit{color:var(--crit);}
+
 /* bottom strip */
 .dash-strip{
   border-top:1px solid var(--line-soft);
@@ -298,11 +363,11 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
   <div class="wrap">
     <div class="page-head">
       <span class="tag">Live demonstration</span>
-      <h1>Facial emotion analysis — running in your browser.</h1>
-      <p class="sub">This is a real, working demo of Emoticore's facial signal pipeline. Grant camera access and the system will detect faces, classify expressions, and compute a live threat index — entirely on this device.</p>
+      <h1>Facial + vocal analysis — running in your browser.</h1>
+      <p class="sub">This is a real, working demo of Emoticore's fusion pipeline. Grant camera and microphone access and the system will detect faces, classify expressions, analyze vocal stress, and fuse everything into a live threat index — entirely on this device. Optional transcription uses your browser's speech service.</p>
       <span class="privacy-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
-        NO VIDEO LEAVES YOUR DEVICE — ALL INFERENCE IS LOCAL
+        VIDEO &amp; AUDIO ANALYZED ON-DEVICE — TRANSCRIPT IS OPT-IN
       </span>
     </div>
 
@@ -313,6 +378,8 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
           <span class="num" id="clock">00:00:00 UTC</span>
         </div>
         <div class="r">
+          <button class="chip" id="vox-chip" disabled>VOX —</button>
+          <button class="chip" id="tr-chip" disabled>TRANSCRIPT —</button>
           <button class="stop-btn" id="stop-btn">TERMINATE FEED</button>
           <span class="state-pill" id="state-pill"><span class="pip"></span><span id="state-text">STANDBY</span></span>
         </div>
@@ -320,22 +387,30 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 
       <div class="dash-grid">
         <div class="stage" id="stage">
-          <div class="feed-wrap" id="feed-wrap">
-            <video id="cam" autoplay muted playsinline></video>
-            <canvas id="overlay"></canvas>
-            <div class="scanline" id="scanline"></div>
-            <div class="hud num" id="hud">
-              <span class="tl" id="hud-subj">SUBJ — · SEARCHING</span>
-              <span class="tr">● REC</span>
-              <span class="bl" id="hud-res">—</span>
-              <span class="br" id="hud-lat">INFER — ms</span>
+          <div class="stage-main">
+            <div class="feed-wrap" id="feed-wrap">
+              <video id="cam" autoplay muted playsinline></video>
+              <canvas id="overlay"></canvas>
+              <div class="scanline" id="scanline"></div>
+              <div class="hud num" id="hud">
+                <span class="tl" id="hud-subj">SUBJ — · SEARCHING</span>
+                <span class="tr">● REC</span>
+                <span class="bl" id="hud-res">—</span>
+                <span class="br" id="hud-lat">INFER — ms</span>
+              </div>
             </div>
+          </div>
+
+          <div class="vox-strip">
+            <canvas id="vox-canvas"></canvas>
+            <span class="vox-hud num" id="vox-hud">VOX · F0 — · — dB</span>
+            <div class="vox-off" id="vox-off">VOX OFFLINE — MICROPHONE INACTIVE</div>
           </div>
 
           <div class="gate" id="gate">
             <div class="reticle" id="reticle" style="display:none"></div>
             <h2 id="gate-title">Initialize live scan</h2>
-            <p id="gate-copy">Your browser will ask for camera permission. The video stream is processed locally and never uploaded.</p>
+            <p id="gate-copy">Your browser will ask for camera and microphone permission. Both streams are analyzed locally and never uploaded. Denying the mic still runs the facial pipeline.</p>
             <div class="gate-status" id="gate-status"></div>
             <button class="btn btn-primary" id="start-btn">Start camera scan →</button>
           </div>
@@ -344,6 +419,13 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
         <div class="side">
           <h4>Affect telemetry — live</h4>
           <div id="emotion-rows"></div>
+          <div class="vox-block">
+            <h4>Vocal telemetry — live</h4>
+            <div class="vx-state" id="vx-state">MICROPHONE INACTIVE</div>
+            <div class="erow"><div class="line1"><span class="en">Loudness</span><span class="ev num" id="vx-loud-v">—</span></div><div class="track"><div class="fill" id="vx-loud-f"></div></div></div>
+            <div class="erow"><div class="line1"><span class="en">Pitch F0</span><span class="ev num" id="vx-pitch-v">—</span></div><div class="track"><div class="fill" id="vx-pitch-f"></div></div></div>
+            <div class="erow"><div class="line1"><span class="en">Vocal stress</span><span class="ev num" id="vx-stress-v">—</span></div><div class="track"><div class="fill" id="vx-stress-f"></div></div></div>
+          </div>
           <div class="threat">
             <div class="gauge">
               <svg viewBox="0 0 100 100">
@@ -367,12 +449,19 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
         </div>
       </div>
 
+      <div class="transcript" id="transcript-band">
+        <span class="t-label">TRANSCRIPT</span>
+        <div class="t-text"><span class="wrap-inner" id="t-text">listening…</span></div>
+        <span class="t-flags" id="t-flags">0 FLAGS</span>
+      </div>
+
       <div class="dash-strip num">
         <div class="cell">FPS <b id="st-fps">—</b></div>
         <div class="cell">INFERENCE <b id="st-lat">— ms</b></div>
         <div class="cell">FACES <b id="st-faces">0</b></div>
+        <div class="cell">VOX <b id="st-vox">OFF</b></div>
+        <div class="cell">F0 <b id="st-f0">—</b></div>
         <div class="cell">RESOLUTION <b id="st-res">—</b></div>
-        <div class="cell">ENGINE <b id="st-engine">STANDBY</b></div>
         <div class="cell">PRIVACY <b style="color:var(--ok)">ON-DEVICE</b></div>
       </div>
     </div>
@@ -382,7 +471,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 <footer class="mini-footer">
   <div class="wrap">
     <span>© 2026 EMOTICORE SYSTEMS, INC.</span>
-    <span>DEMO BUILD · FACIAL PIPELINE ONLY · SPEECH MODULE COMING SOON</span>
+    <span>DEMO BUILD · FACIAL + VOCAL FUSION PIPELINE</span>
   </div>
 </footer>
 
@@ -413,6 +502,18 @@ var logEl = document.getElementById('log');
 
 var running = false;
 var stream = null;
+
+/* vox state */
+var voxChip = document.getElementById('vox-chip');
+var trChip = document.getElementById('tr-chip');
+var voxOffEl = document.getElementById('vox-off');
+var voxHud = document.getElementById('vox-hud');
+var voxCanvas = document.getElementById('vox-canvas');
+var vctx = voxCanvas.getContext('2d');
+var audioStream = null, audioCtx = null, analyser = null, timeBuf = null;
+var voxOn = false, voxReady = false, voxSupported = false;
+var vocalStress = 0, keywordBoost = 0, facialRaw = 0;
+var recognition = null, transcriptOn = false, flagCount = 0;
 
 /* ---------- clock ---------- */
 function pad(n, w){ n = String(n); while(n.length < w) n = '0' + n; return n; }
@@ -474,14 +575,14 @@ function threatLevel(v){
   if(v < 65) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Negative-affect cluster detected. Monitoring closely.'};
   return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Strong negative-affect signal. In production an alert would dispatch to your SOC.'};
 }
-function renderThreat(v, hasFace){
-  gaugeNum.textContent = hasFace ? String(Math.round(v)) : '—';
+function renderThreat(v, hasSignal, driver){
+  gaugeNum.textContent = hasSignal ? String(Math.round(v)) : '—';
   gaugeVal.style.strokeDashoffset = String(ARC - (Math.min(v,100) / 100) * ARC);
-  if(!hasFace){
+  if(!hasSignal){
     gaugeVal.style.stroke = 'rgba(148,163,184,0.4)';
     threatStatus.className = 't-status t-idle';
     threatLabel.textContent = 'SIGNAL LOST';
-    threatDesc.textContent = 'No face in frame. Re-acquire subject to resume scoring.';
+    threatDesc.textContent = 'No face or voice signal. Re-acquire subject to resume scoring.';
     if(lastLevel !== 'LOST'){ lastLevel = 'LOST'; }
     return;
   }
@@ -489,12 +590,30 @@ function renderThreat(v, hasFace){
   gaugeVal.style.stroke = s.color;
   threatStatus.className = 't-status ' + s.cls;
   threatLabel.textContent = s.label;
-  threatDesc.textContent = s.desc;
+  threatDesc.textContent = s.desc + (driver && s.label !== 'LOW' ? ' Primary driver: ' + driver + '.' : '');
   if(s.label !== lastLevel){
     lastLevel = s.label;
     log(s.label === 'LOW' ? 'ok' : s.label === 'ELEVATED' ? 'warn' : 'crit',
-        'threat index ' + Math.round(v) + ' → ' + s.label);
+        'threat index ' + Math.round(v) + ' → ' + s.label + (driver ? ' · ' + driver : ''));
   }
+}
+
+/* fuse facial + vocal signals into one index */
+function fuseAndRender(hasFace){
+  var voxLive = voxOn && voxReady;
+  if(!voxOn) keywordBoost *= 0.95; /* vox loop isn't running to decay it */
+  var sum = 0, wsum = 0;
+  if(hasFace){ sum += 0.65 * facialRaw; wsum += 0.65; }
+  if(voxLive){ sum += 0.35 * vocalStress; wsum += 0.35; }
+  var target = wsum ? (sum / wsum) : 0;
+  target = Math.min(100, target + keywordBoost);
+  threatIdx += (target - threatIdx) * 0.12;
+  var driver = '';
+  if(keywordBoost > 8) driver = 'LEXICON';
+  else if(hasFace && voxLive) driver = facialRaw >= vocalStress ? 'FACIAL' : 'VOCAL';
+  else if(hasFace) driver = 'FACIAL';
+  else if(voxLive) driver = 'VOCAL';
+  renderThreat(threatIdx, hasFace || voxLive, driver);
 }
 
 /* ---------- state pill ---------- */
@@ -597,7 +716,6 @@ async function start(){
   feedWrap.style.width = 'min(100%, calc(66vh * ' + ar.toFixed(4) + '))';
   document.getElementById('hud-res').textContent = vw + '×' + vh + ' · 30FPS';
   document.getElementById('st-res').textContent = vw + '×' + vh;
-  document.getElementById('st-engine').textContent = 'TINY-YOLO + EXPR NET';
 
   sizeOverlay();
   gate.classList.add('hidden');
@@ -610,6 +728,7 @@ async function start(){
 
   running = true;
   detectLoop();
+  initVox(); /* mic permission prompt appears while the face pipeline is already live */
 }
 
 /* ---------- stop ---------- */
@@ -637,7 +756,7 @@ function stop(){
   document.getElementById('st-fps').textContent = '—';
   document.getElementById('st-lat').textContent = '— ms';
   document.getElementById('st-faces').textContent = '0';
-  document.getElementById('st-engine').textContent = 'STANDBY';
+  stopVox();
   log('warn', 'feed terminated by operator');
 }
 stopBtn.addEventListener('click', stop);
@@ -769,8 +888,8 @@ function telemetry(dets, lat){
       rowEls[e.key].fill.style.width = pct + '%';
       rowEls[e.key].row.classList.remove('dominant');
     });
-    threatIdx *= 0.92;
-    renderThreat(threatIdx, false);
+    facialRaw *= 0.9;
+    fuseAndRender(false);
     return;
   }
 
@@ -797,21 +916,314 @@ function telemetry(dets, lat){
     log('info', 'dominant affect → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '%');
   }
 
-  /* threat index: weighted negative affect, smoothed */
-  var raw = 100 * Math.min(1,
+  /* facial threat contribution: weighted negative affect */
+  facialRaw = 100 * Math.min(1,
     (ex.angry || 0) * 1.0 +
     (ex.fearful || 0) * 0.85 +
     (ex.disgusted || 0) * 0.5 +
     (ex.sad || 0) * 0.2 +
     (ex.surprised || 0) * 0.25
   );
-  threatIdx += (raw - threatIdx) * 0.12;
-  renderThreat(threatIdx, true);
+  fuseAndRender(true);
 }
 
-/* release camera when leaving the page */
+/* ================= VOX MODULE ================= */
+var f0Hist = [], baseF0 = 0, baseRMS = 0, calibSamples = [];
+var voxFrame = 0, lastF0 = 0, lastDb = -60;
+
+async function initVox(){
+  try{
+    audioStream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}
+    });
+  }catch(e){
+    log('warn', 'VOX unavailable — running face-only (' + (e && e.name ? e.name : 'denied') + ')');
+    voxChip.textContent = 'VOX OFF';
+    voxChip.disabled = true;
+    return;
+  }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended'){ try{ await audioCtx.resume(); }catch(e){} }
+  var src = audioCtx.createMediaStreamSource(audioStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0;
+  src.connect(analyser);
+  timeBuf = new Float32Array(analyser.fftSize);
+  voxSupported = true;
+  setVox(true);
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(SR){ trChip.disabled = false; trChip.textContent = 'TRANSCRIPT OFF'; }
+  else { trChip.textContent = 'TRANSCRIPT N/A'; }
+  log('ok', 'VOX stream locked · calibrating baseline…');
+}
+
+function setVox(on){
+  voxOn = on && voxSupported;
+  voxChip.classList.toggle('on', voxOn);
+  voxChip.textContent = voxOn ? 'VOX ON' : 'VOX OFF';
+  voxChip.disabled = !voxSupported;
+  voxOffEl.style.display = voxOn ? 'none' : 'flex';
+  document.getElementById('st-vox').textContent = voxOn ? 'LIVE' : 'OFF';
+  var vs = document.getElementById('vx-state');
+  vs.textContent = voxOn ? (voxReady ? 'BASELINE LOCKED · F0 ' + baseF0.toFixed(0) + ' Hz' : 'CALIBRATING — SPEAK NORMALLY') : 'MICROPHONE MUTED';
+  vs.className = 'vx-state' + (voxOn ? (voxReady ? ' ready' : ' calib') : '');
+  if(voxOn){
+    sizeVoxCanvas();
+    if(!voxLooping) voxLoop();
+  }else{
+    if(transcriptOn) setTranscript(false);
+    if(vctx) vctx.clearRect(0, 0, voxCanvas.width, voxCanvas.height);
+    ['vx-loud','vx-pitch','vx-stress'].forEach(function(id){
+      document.getElementById(id + '-v').textContent = '—';
+      document.getElementById(id + '-f').style.width = '0%';
+    });
+    voxHud.textContent = 'VOX · F0 — · — dB';
+    document.getElementById('st-f0').textContent = '—';
+  }
+}
+voxChip.addEventListener('click', function(){ setVox(!voxOn); });
+
+function stopVox(){
+  if(recognition){ try{ recognition.stop(); }catch(e){} recognition = null; }
+  transcriptOn = false;
+  trChip.classList.remove('on');
+  trChip.textContent = 'TRANSCRIPT —';
+  trChip.disabled = true;
+  document.getElementById('transcript-band').classList.remove('show');
+  if(audioStream){ audioStream.getTracks().forEach(function(t){ t.stop(); }); audioStream = null; }
+  if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx = null; }
+  analyser = null;
+  voxSupported = false; voxReady = false; voxOn = false;
+  vocalStress = 0; keywordBoost = 0;
+  f0Hist = []; calibSamples = []; baseF0 = 0; lastF0 = 0; lastDb = -60;
+  voxChip.classList.remove('on');
+  voxChip.textContent = 'VOX —';
+  voxChip.disabled = true;
+  voxOffEl.style.display = 'flex';
+  document.getElementById('st-vox').textContent = 'OFF';
+  document.getElementById('st-f0').textContent = '—';
+  var vs = document.getElementById('vx-state');
+  vs.textContent = 'MICROPHONE INACTIVE';
+  vs.className = 'vx-state';
+  ['vx-loud','vx-pitch','vx-stress'].forEach(function(id){
+    document.getElementById(id + '-v').textContent = '—';
+    document.getElementById(id + '-f').style.width = '0%';
+  });
+  voxHud.textContent = 'VOX · F0 — · — dB';
+  if(vctx) vctx.clearRect(0, 0, voxCanvas.width, voxCanvas.height);
+  finalText = '';
+  flagCount = 0;
+  document.getElementById('t-flags').textContent = '0 FLAGS';
+  document.getElementById('t-flags').classList.remove('hit');
+  document.getElementById('t-text').innerHTML = 'listening…';
+}
+
+function sizeVoxCanvas(){
+  var w = voxCanvas.clientWidth, h = voxCanvas.clientHeight;
+  voxCanvas.width = w * DPR;
+  voxCanvas.height = h * DPR;
+  vctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', function(){ if(voxOn) sizeVoxCanvas(); });
+
+/* autocorrelation pitch detection over the first 1024 samples */
+function detectPitch(buf, sr){
+  var SIZE = 1024;
+  var rms = 0;
+  for(var i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+  rms = Math.sqrt(rms / SIZE);
+  if(rms < 0.01) return {f0: 0, rms: rms};
+  var minLag = Math.floor(sr / 400);
+  var maxLag = Math.min(Math.floor(sr / 60), SIZE - 1);
+  var best = 0, bestLag = 0, zero = 0;
+  for(var j = 0; j < SIZE; j++) zero += buf[j] * buf[j];
+  for(var lag = minLag; lag <= maxLag; lag++){
+    var sum = 0;
+    for(var k = 0; k < SIZE - lag; k++) sum += buf[k] * buf[k + lag];
+    if(sum > best){ best = sum; bestLag = lag; }
+  }
+  if(!bestLag || best / zero < 0.45) return {f0: 0, rms: rms};
+  return {f0: sr / bestLag, rms: rms};
+}
+
+var voxLooping = false;
+function voxLoop(){
+  if(!running || !voxOn || !analyser){ voxLooping = false; return; }
+  voxLooping = true;
+  analyser.getFloatTimeDomainData(timeBuf);
+  drawWave();
+  voxFrame++;
+  if(voxFrame % 4 === 0) analyzeVoice();
+  keywordBoost *= 0.988;
+  requestAnimationFrame(voxLoop);
+}
+
+function drawWave(){
+  var W = voxCanvas.clientWidth, H = voxCanvas.clientHeight;
+  vctx.clearRect(0, 0, W, H);
+  vctx.strokeStyle = 'rgba(148,163,184,0.15)';
+  vctx.lineWidth = 1;
+  vctx.beginPath(); vctx.moveTo(0, H / 2); vctx.lineTo(W, H / 2); vctx.stroke();
+  vctx.beginPath();
+  var step = Math.max(1, Math.floor(timeBuf.length / W));
+  for(var x = 0; x < W; x++){
+    var v = timeBuf[Math.min(timeBuf.length - 1, x * step)];
+    var y = H / 2 + v * H * 0.42;
+    if(x === 0) vctx.moveTo(x, y); else vctx.lineTo(x, y);
+  }
+  vctx.strokeStyle = 'rgba(56,225,255,0.85)';
+  vctx.lineWidth = 1.4;
+  vctx.shadowColor = 'rgba(56,225,255,0.4)';
+  vctx.shadowBlur = 5;
+  vctx.stroke();
+  vctx.shadowBlur = 0;
+}
+
+function analyzeVoice(){
+  var p = detectPitch(timeBuf, audioCtx.sampleRate);
+  var db = p.rms > 0 ? Math.max(-60, 20 * Math.log10(p.rms)) : -60;
+  lastDb = lastDb + (db - lastDb) * 0.3;
+  var loudPct = Math.round(Math.min(100, Math.max(0, (lastDb + 60) / 60 * 100)));
+  document.getElementById('vx-loud-v').textContent = lastDb.toFixed(0) + ' dB';
+  document.getElementById('vx-loud-f').style.width = loudPct + '%';
+
+  var voiced = p.f0 > 0;
+  if(voiced){
+    lastF0 = lastF0 ? lastF0 + (p.f0 - lastF0) * 0.4 : p.f0;
+    f0Hist.push(p.f0);
+    if(f0Hist.length > 24) f0Hist.shift();
+    if(!voxReady){
+      calibSamples.push(p.f0);
+      if(calibSamples.length >= 30){
+        var sorted = calibSamples.slice().sort(function(a, b){ return a - b; });
+        baseF0 = sorted[Math.floor(sorted.length / 2)];
+        baseRMS = p.rms;
+        voxReady = true;
+        var vs = document.getElementById('vx-state');
+        vs.textContent = 'BASELINE LOCKED · F0 ' + baseF0.toFixed(0) + ' Hz';
+        vs.className = 'vx-state ready';
+        log('ok', 'vocal baseline locked · F0 ' + baseF0.toFixed(0) + 'Hz');
+      }
+    }
+    var pitchPct = Math.round(Math.min(100, Math.max(0, (lastF0 - 60) / 340 * 100)));
+    document.getElementById('vx-pitch-v').textContent = lastF0.toFixed(0) + ' Hz';
+    document.getElementById('vx-pitch-f').style.width = pitchPct + '%';
+    document.getElementById('st-f0').textContent = lastF0.toFixed(0) + ' Hz';
+  }
+  voxHud.textContent = 'VOX · F0 ' + (voiced ? lastF0.toFixed(0) + ' Hz' : '—') + ' · ' + lastDb.toFixed(0) + ' dB';
+
+  /* vocal stress proxy: pitch elevation + jitter + loudness spike vs calibrated baseline */
+  if(voxReady){
+    var target = 0;
+    if(voiced && f0Hist.length > 6){
+      var mean = 0;
+      f0Hist.forEach(function(v){ mean += v; });
+      mean /= f0Hist.length;
+      var varr = 0;
+      f0Hist.forEach(function(v){ varr += (v - mean) * (v - mean); });
+      var cv = Math.sqrt(varr / f0Hist.length) / mean;
+      var elev = Math.max(0, (lastF0 - baseF0) / baseF0);
+      var loud = baseRMS > 0 ? Math.max(0, (p.rms - baseRMS) / baseRMS) : 0;
+      target = 100 * Math.min(1, elev * 1.3 + Math.max(0, cv - 0.045) * 5 + loud * 0.25);
+    }
+    vocalStress += (target - vocalStress) * (voiced ? 0.15 : 0.03);
+    var sp = Math.round(vocalStress);
+    document.getElementById('vx-stress-v').textContent = sp + '%';
+    document.getElementById('vx-stress-f').style.width = sp + '%';
+  }
+}
+
+/* ---------- transcription (opt-in, uses browser speech service) ---------- */
+var KEYWORDS = {
+  bomb:25, gun:25, weapon:25, shoot:25, kill:25, explode:25, hostage:25, knife:20,
+  attack:18, hurt:15, fight:15, threat:15, die:12, hate:10, destroy:12
+};
+var kwRegex = new RegExp('\\b(' + Object.keys(KEYWORDS).join('|') + ')\\b', 'gi');
+var finalText = '';
+
+function esc(s){
+  return s.replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+function highlight(escaped){
+  kwRegex.lastIndex = 0;
+  return escaped.replace(kwRegex, function(m){ return '<mark>' + m + '</mark>'; });
+}
+
+function setTranscript(on){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR || !voxOn) return;
+  transcriptOn = on;
+  trChip.classList.toggle('on', on);
+  trChip.textContent = on ? 'TRANSCRIPT ON' : 'TRANSCRIPT OFF';
+  document.getElementById('transcript-band').classList.toggle('show', on);
+  if(on){
+    log('info', 'transcript on — audio routed via browser speech service');
+    startRecognition(SR);
+  }else{
+    if(recognition){ try{ recognition.stop(); }catch(e){} recognition = null; }
+    log('info', 'transcript disabled');
+  }
+}
+trChip.addEventListener('click', function(){ setTranscript(!transcriptOn); });
+
+function startRecognition(SR){
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.onresult = function(ev){
+    var interim = '';
+    for(var i = ev.resultIndex; i < ev.results.length; i++){
+      var t = ev.results[i][0].transcript;
+      if(ev.results[i].isFinal){
+        finalText += t + ' ';
+        scanKeywords(t);
+      }else{
+        interim += t;
+      }
+    }
+    if(finalText.length > 260) finalText = finalText.slice(-260);
+    document.getElementById('t-text').innerHTML =
+      highlight(esc(finalText)) + '<span class="t-interim">' + esc(interim) + '</span>';
+  };
+  recognition.onerror = function(ev){
+    if(ev.error === 'not-allowed'){ log('crit', 'speech service blocked by browser'); setTranscript(false); }
+    else if(ev.error === 'network'){ log('warn', 'speech service unreachable — transcript needs internet'); }
+  };
+  recognition.onend = function(){
+    /* the service stops itself after silence — restart while enabled */
+    if(transcriptOn && running && voxOn){
+      setTimeout(function(){
+        if(transcriptOn && recognition){ try{ recognition.start(); }catch(e){} }
+      }, 300);
+    }
+  };
+  try{ recognition.start(); }catch(e){}
+}
+
+function scanKeywords(text){
+  var m, found = {};
+  kwRegex.lastIndex = 0;
+  while((m = kwRegex.exec(text)) !== null){
+    var w = m[1].toLowerCase();
+    if(found[w]) continue;
+    found[w] = true;
+    flagCount++;
+    keywordBoost = Math.min(45, keywordBoost + KEYWORDS[w]);
+    log('crit', 'lexicon hit · "' + w.toUpperCase() + '"');
+  }
+  var fl = document.getElementById('t-flags');
+  fl.textContent = flagCount + ' FLAG' + (flagCount === 1 ? '' : 'S');
+  fl.classList.toggle('hit', flagCount > 0);
+}
+
+/* release camera + mic when leaving the page */
 window.addEventListener('pagehide', function(){
   if(stream) stream.getTracks().forEach(function(t){ t.stop(); });
+  if(audioStream) audioStream.getTracks().forEach(function(t){ t.stop(); });
 });
 
 })();
