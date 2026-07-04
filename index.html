@@ -674,13 +674,13 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
     <div class="nav-links">
       <a href="#platform">Platform</a>
       <a href="#pipeline">Pipeline</a>
-      <a href="#console">Console</a>
       <a href="#deployments">Deployments</a>
-      <a href="demo.html">Live demo</a>
+      <a href="demo.html">Camera demo</a>
+      <a href="voice.html">Voice demo</a>
     </div>
     <div class="nav-cta">
-      <a href="demo.html" class="btn btn-ghost">Try the live demo</a>
-      <a href="#demo-request" class="btn btn-primary">Request demo</a>
+      <a href="voice.html" class="btn btn-ghost">Voice demo</a>
+      <a href="demo.html" class="btn btn-primary">Camera demo</a>
       <button class="menu-btn" id="menu-btn" aria-label="Toggle menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -690,10 +690,9 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
 <div class="mobile-menu" id="mobile-menu">
   <a href="#platform">Platform</a>
   <a href="#pipeline">Pipeline</a>
-  <a href="#console">Console</a>
   <a href="#deployments">Deployments</a>
-  <a href="demo.html">Live demo</a>
-  <a href="#demo-request" class="btn btn-primary">Request demo</a>
+  <a href="voice.html">Voice demo</a>
+  <a href="demo.html" class="btn btn-primary">Camera demo</a>
 </div>
 
 <!-- ============ HERO ============ -->
@@ -707,8 +706,8 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       <h1 class="boot" style="--b:.15s">Detect <span class="grad">intent</span> before it becomes incident.</h1>
       <p class="hero-sub boot" style="--b:.3s">Emoticore fuses live camera feeds and speech analysis into one behavioral threat picture — surfacing what humans miss and what legacy systems ignore.</p>
       <div class="hero-ctas boot" style="--b:.45s">
-        <a href="#demo-request" class="btn btn-primary">Request demo <span class="arr">→</span></a>
-        <a href="#platform" class="btn btn-ghost">Explore the platform</a>
+        <a href="demo.html" class="btn btn-primary">Try the camera demo <span class="arr">→</span></a>
+        <a href="voice.html" class="btn btn-ghost">Analyze your voice</a>
       </div>
       <div class="hero-metrics boot" style="--b:.6s">
         <div class="m"><div class="v num"><span data-count="99.2" data-decimals="1">0</span><i>%</i></div><div class="l">Classification accuracy</div></div>
@@ -780,7 +779,7 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
         <h3>Speech Analysis</h3>
         <p>Vocal stress, cadence shifts, and tonal micro-tremors decoded in real time — flagging distress and deception the ear can't register.</p>
         <div class="bay-visual"><canvas id="wave-canvas"></canvas></div>
-        <div class="bay-spec"><b>47</b> vocal biomarkers &nbsp;·&nbsp; <b>9</b> languages &nbsp;·&nbsp; SNR-adaptive</div>
+        <div class="bay-spec"><b>47</b> vocal biomarkers &nbsp;·&nbsp; <b>9</b> languages &nbsp;·&nbsp; SNR-adaptive<br><a href="voice.html" style="color:var(--cyan)">Run the voice demo →</a></div>
       </div>
       <div class="bay">
         <div class="bay-id">SIG // FACE</div>
@@ -794,7 +793,7 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
             <div class="dotgrid"></div>
           </div>
         </div>
-        <div class="bay-spec"><b>68</b> landmarks &nbsp;·&nbsp; <b>27</b> action units &nbsp;·&nbsp; occlusion-tolerant</div>
+        <div class="bay-spec"><b>68</b> landmarks &nbsp;·&nbsp; <b>27</b> action units &nbsp;·&nbsp; occlusion-tolerant<br><a href="demo.html" style="color:var(--cyan)">Run the camera demo →</a></div>
       </div>
       <div class="bay">
         <div class="bay-id">SIG // SCORE</div>
@@ -959,15 +958,15 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
 </section>
 
 <!-- ============ CTA ============ -->
-<section class="cta-band" id="demo-request">
+<section class="cta-band" id="try-live">
   <div class="cta-box rv">
     <h2>See what you've been missing.</h2>
-    <p>Book a live demonstration against your own camera feeds. Our team deploys a pilot node in under a day.</p>
+    <p>Run Emoticore against your own camera and voice — right now, in this browser. No signup, no install, and nothing leaves your device.</p>
     <div class="row">
-      <a href="#" class="btn btn-primary">Request demo <span class="arr">→</span></a>
-      <a href="demo.html" class="btn btn-ghost">Try the live demo</a>
+      <a href="demo.html" class="btn btn-primary">Launch camera demo <span class="arr">→</span></a>
+      <a href="voice.html" class="btn btn-ghost">Analyze your voice</a>
     </div>
-    <div class="cta-note">ON-PREM · VPC · AIR-GAPPED OPTIONS AVAILABLE</div>
+    <div class="cta-note">NO ACCOUNT · ON-DEVICE · RUNS IN YOUR BROWSER</div>
   </div>
 </section>
 
@@ -982,9 +981,9 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       <div class="f-col">
         <h5>Product</h5>
         <a href="#platform">Platform</a>
-        <a href="#console">Console</a>
+        <a href="demo.html">Camera demo</a>
+        <a href="voice.html">Voice demo</a>
         <a href="#pipeline">Pipeline</a>
-        <a href="#">Pricing</a>
       </div>
       <div class="f-col">
         <h5>Company</h5>

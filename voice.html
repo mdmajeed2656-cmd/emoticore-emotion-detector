@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoticore — Voice Emotion Analysis</title>
+<meta name="description" content="Record or upload a voice sample and Emoticore's prosody engine estimates the emotional state — calm, happy, nervous, angry, sad — entirely on your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070d;
+  --bg-raise:#090d17;
+  --panel:#0b101c;
+  --panel-2:#0d1424;
+  --ink:#e8edf6;
+  --ink-2:#98a2b8;
+  --ink-3:#5c6784;
+  --line:rgba(148,163,184,0.12);
+  --line-soft:rgba(148,163,184,0.07);
+  --cyan:#38e1ff;
+  --cyan-hot:#00f5ff;
+  --violet:#8b5cf6;
+  --ok:#34d399;
+  --warn:#fbbf24;
+  --crit:#f87171;
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono','Courier New',monospace;
+  --wrap:1240px;
+  --nav-h:64px;
+  --r:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-body);font-size:16px;line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+::selection{background:rgba(56,225,255,0.25);color:#fff;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:#1a2338;border-radius:5px;border:2px solid var(--bg);}
+a{color:inherit;text-decoration:none;}
+button{font:inherit;cursor:pointer;background:none;border:none;color:inherit;}
+img,svg,canvas{display:block;}
+h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
+.mono{font-family:var(--font-mono);}
+.num{font-variant-numeric:tabular-nums;}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px;width:100%;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--font-body);font-weight:600;font-size:0.92rem;
+  padding:13px 26px;border-radius:var(--r);
+  border:1px solid transparent;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--cyan);color:#03121a;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(56,225,255,0.35);background:var(--cyan-hot);}
+.btn-ghost{border-color:var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:rgba(56,225,255,0.5);background:rgba(56,225,255,0.06);}
+.btn-danger{border-color:rgba(248,113,113,0.5);color:var(--crit);}
+.btn-danger:hover{background:rgba(248,113,113,0.08);}
+
+/* nav */
+.nav{
+  position:sticky;top:0;z-index:100;height:var(--nav-h);
+  display:flex;align-items:center;
+  background:rgba(5,7,13,0.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.nav-inner{max-width:var(--wrap);margin:0 auto;padding:0 28px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:800;font-size:1.02rem;letter-spacing:0.06em;color:#fff;}
+.brand-mark{width:26px;height:26px;position:relative;flex:none;border:1px solid rgba(56,225,255,0.8);border-radius:3px;}
+.brand-mark::before{content:'';position:absolute;inset:5px;background:linear-gradient(135deg,var(--cyan),var(--violet));border-radius:2px;animation:markPulse 3.2s ease-in-out infinite;}
+@keyframes markPulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+.brand em{font-style:normal;color:var(--cyan);}
+.nav-right{display:flex;align-items:center;gap:18px;}
+.back-link{font-size:0.88rem;color:var(--ink-2);transition:color .2s ease;font-weight:500;}
+.back-link:hover{color:#fff;}
+.env-pill{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.16em;color:var(--cyan);
+  border:1px solid rgba(56,225,255,0.3);border-radius:20px;padding:6px 14px;
+  background:rgba(56,225,255,0.05);
+}
+.env-pill .pip{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pipPulse 1.8s ease-in-out infinite;}
+@keyframes pipPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,225,255,0.5);}50%{box-shadow:0 0 0 6px rgba(56,225,255,0);}}
+
+/* page head */
+.page-head{padding:44px 0 28px;}
+.tag{
+  font-family:var(--font-mono);font-size:0.72rem;font-weight:500;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--cyan);
+  display:inline-flex;align-items:center;gap:10px;
+}
+.tag::before{content:'';width:22px;height:1px;background:var(--cyan);opacity:0.7;}
+.page-head h1{font-size:clamp(1.6rem,3.4vw,2.4rem);font-weight:700;color:#fff;margin:14px 0 10px;}
+.page-head .sub{color:var(--ink-2);max-width:66ch;font-size:0.98rem;}
+.privacy-note{
+  display:inline-flex;align-items:center;gap:9px;margin-top:16px;
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.1em;
+  color:var(--ok);border:1px solid rgba(52,211,153,0.3);border-radius:20px;
+  padding:7px 15px;background:rgba(52,211,153,0.06);
+}
+.privacy-note svg{width:13px;height:13px;flex:none;}
+
+/* console */
+.demo-main{flex:1;padding-bottom:64px;}
+.dash{
+  border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,0.5);
+}
+.dash-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px 20px;border-bottom:1px solid var(--line-soft);
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;
+}
+.dash-bar .l{display:flex;align-items:center;gap:16px;color:var(--ink-3);flex-wrap:wrap;}
+.dash-bar .r{display:flex;align-items:center;gap:14px;}
+.state-pill{display:flex;align-items:center;gap:8px;color:var(--ink-3);transition:color .3s ease;font-family:var(--font-mono);}
+.state-pill .pip{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.state-pill.rec{color:var(--crit);}
+.state-pill.rec .pip{animation:recPulse 1.2s ease-in-out infinite;}
+.state-pill.busy{color:var(--warn);}
+.state-pill.done{color:var(--ok);}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,0.6);}50%{box-shadow:0 0 0 7px rgba(248,113,113,0);}}
+
+.dash-grid{display:grid;grid-template-columns:1.25fr 0.75fr;}
+.stage{
+  position:relative;border-right:1px solid var(--line-soft);
+  background:#04060b;min-height:460px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.wave-area{flex:1;min-height:0;position:relative;}
+#wave{position:absolute;inset:0;width:100%;height:100%;}
+.wave-hud{
+  position:absolute;top:12px;left:14px;z-index:2;pointer-events:none;
+  font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;
+  color:rgba(152,162,184,0.85);
+}
+.rec-badge{
+  position:absolute;top:12px;right:14px;z-index:2;
+  display:none;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;color:var(--crit);
+}
+.rec-badge .pip{width:8px;height:8px;border-radius:50%;background:var(--crit);animation:recPulse 1.2s ease-in-out infinite;}
+
+/* controls strip under waveform */
+.stage-ctl{
+  flex:none;min-height:64px;border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:12px 18px;
+  font-family:var(--font-mono);font-size:0.7rem;color:var(--ink-3);
+}
+.stage-ctl .timer{font-size:1.05rem;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.06em;}
+.stage-ctl .hint{letter-spacing:0.1em;font-size:0.62rem;}
+.stage-ctl .actions{display:flex;gap:10px;flex-wrap:wrap;}
+.stage-ctl .btn{padding:9px 18px;font-size:0.82rem;}
+.rec-progress{
+  position:absolute;left:0;bottom:0;height:2px;z-index:3;width:0%;
+  background:linear-gradient(90deg,var(--violet),var(--cyan));
+  box-shadow:0 0 10px rgba(56,225,255,0.5);
+  transition:width .2s linear;
+}
+
+/* gate */
+.gate{
+  position:absolute;inset:0;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgba(56,225,255,0.06), transparent 70%),
+    rgba(4,6,11,0.9);
+  text-align:center;padding:30px;
+}
+.gate .glyph{
+  width:70px;height:70px;border-radius:50%;
+  border:1px solid rgba(56,225,255,0.45);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--cyan);
+  box-shadow:0 0 30px rgba(56,225,255,0.12);
+}
+.gate .glyph svg{width:28px;height:28px;}
+.gate h2{font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.02em;}
+.gate p{font-size:0.85rem;color:var(--ink-2);max-width:46ch;}
+.gate .gate-status{
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.16em;
+  color:var(--cyan);text-transform:uppercase;min-height:1.2em;
+}
+.gate .gate-status.err{color:var(--crit);}
+.gate .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.gate.hidden{display:none;}
+
+/* sidebar */
+.side{padding:24px 24px 20px;display:flex;flex-direction:column;min-height:460px;}
+.side h4{
+  font-family:var(--font-mono);font-size:0.66rem;font-weight:500;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;
+}
+.erow{margin-bottom:11px;}
+.erow .line1{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.74rem;margin-bottom:5px;}
+.erow .line1 .en{color:var(--ink);}
+.erow .line1 .ev{color:var(--cyan);font-variant-numeric:tabular-nums;}
+.erow .track{height:5px;border-radius:3px;background:rgba(148,163,184,0.1);overflow:hidden;}
+.erow .fill{display:block;height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .9s cubic-bezier(.4,0,.2,1);}
+.erow.dominant .line1 .en{color:var(--cyan-hot);}
+
+/* verdict */
+.verdict{
+  margin-top:6px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;
+  background:rgba(56,225,255,0.03);
+}
+.verdict .v-label{
+  font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.2em;
+  color:var(--ink-3);text-transform:uppercase;margin-bottom:6px;
+}
+.verdict .v-emotion{
+  font-family:var(--font-display);font-weight:700;font-size:1.3rem;color:#fff;
+  letter-spacing:0.02em;
+}
+.verdict .v-emotion span{color:var(--cyan);}
+.verdict .v-desc{font-size:0.78rem;color:var(--ink-2);margin-top:6px;line-height:1.5;}
+
+/* stress + features */
+.stress-row{
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;gap:18px;
+}
+.gauge{position:relative;width:84px;height:84px;flex:none;}
+.gauge svg{width:100%;height:100%;transform:rotate(135deg);}
+.gauge .g-track{fill:none;stroke:rgba(148,163,184,0.12);stroke-width:7;stroke-linecap:round;}
+.gauge .g-val{fill:none;stroke:var(--ok);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1), stroke .6s ease;}
+.gauge .g-read{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono);}
+.gauge .g-num{font-size:1.05rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;}
+.gauge .g-cap{font-size:0.48rem;letter-spacing:0.16em;color:var(--ink-3);text-transform:uppercase;margin-top:2px;}
+.stress-note{font-size:0.76rem;color:var(--ink-3);line-height:1.5;max-width:26ch;}
+.stress-note b{color:var(--ink-2);font-weight:500;}
+
+.features{
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft);
+}
+.f-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;
+  font-family:var(--font-mono);font-size:0.68rem;
+}
+.f-grid .kv{display:flex;justify-content:space-between;gap:8px;color:var(--ink-3);}
+.f-grid .kv b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums;text-align:right;}
+
+.side-log{margin-top:auto;padding-top:16px;border-top:1px solid var(--line-soft);}
+.tele-log{
+  font-family:var(--font-mono);font-size:0.66rem;line-height:1.75;
+  color:var(--ink-3);height:100px;overflow:hidden;position:relative;
+}
+.tele-log::after{content:'';position:absolute;top:0;left:0;right:0;height:20px;background:linear-gradient(180deg,var(--panel) 0%,transparent 100%);pointer-events:none;}
+.tele-log .ln{display:flex;gap:8px;animation:logIn .4s ease;}
+@keyframes logIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.tele-log .ts{color:var(--ink-3);opacity:0.7;flex:none;}
+.tele-log .ok{color:var(--ok);}
+.tele-log .warn{color:var(--warn);}
+.tele-log .crit{color:var(--crit);}
+.tele-log .info{color:var(--ink-2);}
+
+/* bottom strip */
+.dash-strip{
+  border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;
+  font-family:var(--font-mono);font-size:0.66rem;color:var(--ink-3);
+  overflow:hidden;white-space:nowrap;
+}
+.dash-strip .cell{padding:11px 20px;border-right:1px solid var(--line-soft);display:flex;gap:8px;align-items:center;flex:none;}
+.dash-strip .cell b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums;}
+
+/* footer */
+.mini-footer{
+  border-top:1px solid var(--line-soft);background:var(--bg-raise);
+  padding:20px 0;
+  font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.08em;color:var(--ink-3);
+}
+.mini-footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+
+@media (max-width:960px){
+  .dash-grid{grid-template-columns:1fr;}
+  .stage{border-right:none;border-bottom:1px solid var(--line-soft);min-height:360px;}
+  .side{min-height:0;}
+}
+@media (max-width:560px){
+  .nav-right .env-pill{display:none;}
+  .page-head h1{font-size:1.5rem;}
+  .stage-ctl{flex-direction:column;align-items:flex-start;}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="brand-mark"></span>EMOTI<em>CORE</em></a>
+    <div class="nav-right">
+      <span class="env-pill"><span class="pip"></span>ON-DEVICE ANALYSIS</span>
+      <a href="demo.html" class="back-link">Camera demo →</a>
+      <a href="index.html" class="back-link">← Back to overview</a>
+    </div>
+  </div>
+</nav>
+
+<main class="demo-main">
+  <div class="wrap">
+    <div class="page-head">
+      <span class="tag">Live demonstration — VOX</span>
+      <h1>Voice emotion analysis — record and decode.</h1>
+      <p class="sub">Record a short voice sample (or upload an audio file) and Emoticore's prosody engine estimates the speaker's emotional state — calm, happy, surprised, nervous, angry, or sad — from pitch, energy, pacing, and rhythm. Everything is computed on this device.</p>
+      <span class="privacy-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+        AUDIO ANALYZED ON-DEVICE — NOTHING IS UPLOADED
+      </span>
+    </div>
+
+    <div class="dash">
+      <div class="dash-bar">
+        <div class="l">
+          <span>EMOTICORE VOX v1.0 · PROSODY ENGINE</span>
+          <span class="num" id="clock">00:00:00 UTC</span>
+        </div>
+        <div class="r">
+          <span class="state-pill" id="state-pill"><span class="pip"></span><span id="state-text">STANDBY</span></span>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="stage">
+          <div class="wave-area">
+            <canvas id="wave"></canvas>
+            <span class="wave-hud num" id="wave-hud">VOX · AWAITING SAMPLE</span>
+            <span class="rec-badge" id="rec-badge"><span class="pip"></span>REC</span>
+            <div class="rec-progress" id="rec-progress"></div>
+          </div>
+          <div class="stage-ctl">
+            <span class="timer num" id="timer">00:00.0</span>
+            <span class="hint" id="hint">SPEAK NATURALLY · 2–15 SECONDS</span>
+            <div class="actions" id="actions">
+              <button class="btn btn-danger" id="stop-btn" style="display:none">Stop &amp; analyze</button>
+              <button class="btn btn-ghost" id="play-btn" style="display:none">▶ Replay</button>
+              <button class="btn btn-ghost" id="again-btn" style="display:none">New sample</button>
+            </div>
+          </div>
+
+          <div class="gate" id="gate">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3M9 21h6"/></svg>
+            </div>
+            <h2 id="gate-title">Record a voice sample</h2>
+            <p id="gate-copy">Speak naturally for a few seconds — read a sentence, describe your day. The prosody engine will estimate the emotional state of the voice. Nothing is uploaded.</p>
+            <div class="gate-status" id="gate-status"></div>
+            <div class="row">
+              <button class="btn btn-primary" id="rec-btn">● Start recording</button>
+              <button class="btn btn-ghost" id="upload-btn">Upload audio file</button>
+              <input type="file" id="file-input" accept="audio/*" style="display:none">
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <h4>Emotion estimate — prosody engine</h4>
+          <div id="emotion-rows"></div>
+
+          <div class="verdict" id="verdict" style="display:none">
+            <div class="v-label">Dominant read</div>
+            <div class="v-emotion" id="v-emotion">—</div>
+            <div class="v-desc" id="v-desc"></div>
+          </div>
+
+          <div class="stress-row">
+            <div class="gauge">
+              <svg viewBox="0 0 100 100">
+                <circle class="g-track" cx="50" cy="50" r="42" stroke-dasharray="198 264"/>
+                <circle class="g-val" id="gauge-val" cx="50" cy="50" r="42" stroke-dasharray="198 264" stroke-dashoffset="198"/>
+              </svg>
+              <div class="g-read">
+                <span class="g-num num" id="gauge-num">—</span>
+                <span class="g-cap">Stress idx</span>
+              </div>
+            </div>
+            <p class="stress-note">Composite of <b>pitch jitter</b>, <b>pausing</b>, <b>energy dynamics</b> and <b>pitch range</b> across the sample.</p>
+          </div>
+
+          <div class="features">
+            <h4>Prosodic features</h4>
+            <div class="f-grid">
+              <span class="kv">MEAN PITCH <b id="f-f0">—</b></span>
+              <span class="kv">PITCH RANGE <b id="f-range">—</b></span>
+              <span class="kv">JITTER <b id="f-jit">—</b></span>
+              <span class="kv">ENERGY <b id="f-db">—</b></span>
+              <span class="kv">RATE <b id="f-rate">—</b></span>
+              <span class="kv">PAUSES <b id="f-pause">—</b></span>
+            </div>
+          </div>
+
+          <div class="side-log">
+            <h4>Event stream</h4>
+            <div class="tele-log" id="log"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-strip num">
+        <div class="cell">CLIP <b id="st-dur">—</b></div>
+        <div class="cell">SAMPLE RATE <b id="st-sr">—</b></div>
+        <div class="cell">FRAMES <b id="st-frames">—</b></div>
+        <div class="cell">VOICED <b id="st-voiced">—</b></div>
+        <div class="cell">ENGINE <b>PROSODY-DSP</b></div>
+        <div class="cell">PRIVACY <b style="color:var(--ok)">ON-DEVICE</b></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="mini-footer">
+  <div class="wrap">
+    <span>© 2026 EMOTICORE SYSTEMS, INC.</span>
+    <span>DEMO BUILD · PROSODY ESTIMATE — NOT A CLINICAL MEASURE · <a href="demo.html" style="color:var(--cyan)">CAMERA DEMO →</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+var DPR = Math.min(window.devicePixelRatio || 1, 2);
+var MAX_SEC = 15, MIN_SPEECH_SEC = 1.2;
+
+var waveCanvas = document.getElementById('wave');
+var wctx = waveCanvas.getContext('2d');
+var gate = document.getElementById('gate');
+var gateTitle = document.getElementById('gate-title');
+var gateCopy = document.getElementById('gate-copy');
+var gateStatus = document.getElementById('gate-status');
+var recBtn = document.getElementById('rec-btn');
+var uploadBtn = document.getElementById('upload-btn');
+var fileInput = document.getElementById('file-input');
+var stopBtn = document.getElementById('stop-btn');
+var playBtn = document.getElementById('play-btn');
+var againBtn = document.getElementById('again-btn');
+var statePill = document.getElementById('state-pill');
+var stateText = document.getElementById('state-text');
+var recBadge = document.getElementById('rec-badge');
+var recProgress = document.getElementById('rec-progress');
+var timerEl = document.getElementById('timer');
+var hintEl = document.getElementById('hint');
+var waveHud = document.getElementById('wave-hud');
+var logEl = document.getElementById('log');
+
+var audioCtx = null, recStream = null, proc = null, srcNode = null, silentGain = null, analyser = null;
+var chunks = [], recSamples = 0, recSr = 48000, recording = false;
+var liveBuf = null;
+var player = null, playUrl = null;
+var lastPcm = null, lastSr = 0;
+
+/* ---------- clock ---------- */
+function pad(n, w){ n = String(n); while(n.length < w) n = '0' + n; return n; }
+function stamp(){
+  var d = new Date();
+  return pad(d.getUTCHours(),2)+':'+pad(d.getUTCMinutes(),2)+':'+pad(d.getUTCSeconds(),2)+'.'+pad(d.getUTCMilliseconds(),3);
+}
+setInterval(function(){
+  var d = new Date();
+  document.getElementById('clock').textContent = pad(d.getUTCHours(),2)+':'+pad(d.getUTCMinutes(),2)+':'+pad(d.getUTCSeconds(),2)+' UTC';
+}, 250);
+
+/* ---------- log ---------- */
+function log(cls, text){
+  var ln = document.createElement('div');
+  ln.className = 'ln';
+  ln.innerHTML = '<span class="ts num">' + stamp() + '</span><span class="' + cls + '">' + text + '</span>';
+  logEl.appendChild(ln);
+  while(logEl.children.length > 5) logEl.removeChild(logEl.firstChild);
+}
+log('info', 'prosody console initialized');
+
+/* ---------- state pill ---------- */
+function setState(text, cls){
+  stateText.textContent = text;
+  statePill.className = 'state-pill' + (cls ? ' ' + cls : '');
+}
+
+/* ---------- emotion rows ---------- */
+var EMOTIONS = [
+  {key:'calm',      label:'Calm'},
+  {key:'happy',     label:'Happy'},
+  {key:'surprised', label:'Surprised'},
+  {key:'nervous',   label:'Nervous / Fearful'},
+  {key:'angry',     label:'Angry'},
+  {key:'sad',       label:'Sad'}
+];
+var VERDICTS = {
+  calm:      'Steady pitch and even energy — this voice reads composed.',
+  happy:     'Elevated pitch variability and lively pacing — positive-affect signature.',
+  surprised: 'Sharp pitch excursions in a short burst — startle-like profile.',
+  nervous:   'High pitch jitter with fragmented pacing — stress markers present.',
+  angry:     'High energy with hard, driving pace — hostile-arousal signature.',
+  sad:       'Low energy, slow pace and a falling contour — negative-valence profile.'
+};
+var rowEls = {};
+(function buildRows(){
+  var host = document.getElementById('emotion-rows');
+  EMOTIONS.forEach(function(e){
+    var d = document.createElement('div');
+    d.className = 'erow';
+    d.innerHTML = '<div class="line1"><span class="en">' + e.label + '</span><span class="ev num">—</span></div>' +
+                  '<div class="track"><span class="fill"></span></div>';
+    host.appendChild(d);
+    rowEls[e.key] = {row:d, val:d.querySelector('.ev'), fill:d.querySelector('.fill')};
+  });
+})();
+
+/* ---------- canvas sizing ---------- */
+function sizeWave(){
+  var w = waveCanvas.clientWidth, h = waveCanvas.clientHeight;
+  waveCanvas.width = w * DPR;
+  waveCanvas.height = h * DPR;
+  wctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', function(){
+  sizeWave();
+  if(lastPcm) drawEnvelope(lastPcm);
+});
+sizeWave();
+
+/* ---------- gate helpers ---------- */
+function gateError(title, copy){
+  gate.classList.remove('hidden');
+  gateTitle.textContent = title;
+  gateCopy.textContent = copy;
+  gateStatus.classList.add('err');
+  gateStatus.textContent = 'ERROR';
+  setState('STANDBY', '');
+}
+function gateMessage(title, copy, status){
+  gate.classList.remove('hidden');
+  gateTitle.textContent = title;
+  gateCopy.textContent = copy;
+  gateStatus.classList.remove('err');
+  gateStatus.textContent = status || '';
+}
+
+/* ---------- recording ---------- */
+recBtn.addEventListener('click', startRecording);
+stopBtn.addEventListener('click', function(){ stopRecording(false); });
+
+async function startRecording(){
+  if(recording || recBtn.disabled) return;
+  recBtn.disabled = true;
+  gateStatus.classList.remove('err');
+  gateStatus.textContent = 'REQUESTING MICROPHONE…';
+  try{
+    recStream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}
+    });
+  }catch(e){
+    if(e && (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError')){
+      gateError('Microphone access denied', 'Emoticore needs the mic to record a sample. Allow microphone permission in your browser and retry. Nothing is uploaded.');
+    }else if(e && e.name === 'NotFoundError'){
+      gateError('No microphone found', 'No audio input device was detected on this machine.');
+    }else{
+      gateError('Microphone unavailable', 'The microphone could not be started (' + (e && e.name ? e.name : 'unknown') + '). If you opened this file directly, try serving it from localhost (e.g. VS Code Live Server).');
+    }
+    log('crit', 'mic acquisition failed');
+    recBtn.disabled = false;
+    return;
+  }
+  recBtn.disabled = false;
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended'){ try{ await audioCtx.resume(); }catch(e){} }
+  recSr = audioCtx.sampleRate;
+  srcNode = audioCtx.createMediaStreamSource(recStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0;
+  liveBuf = new Float32Array(analyser.fftSize);
+  srcNode.connect(analyser);
+  /* ScriptProcessor needs a path to destination to fire — mute it so the mic isn't echoed */
+  proc = audioCtx.createScriptProcessor(4096, 1, 1);
+  silentGain = audioCtx.createGain();
+  silentGain.gain.value = 0;
+  srcNode.connect(proc);
+  proc.connect(silentGain);
+  silentGain.connect(audioCtx.destination);
+
+  chunks = [];
+  recSamples = 0;
+  proc.onaudioprocess = function(ev){
+    if(!recording) return;
+    var input = ev.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(input));
+    recSamples += input.length;
+    if(recSamples / recSr >= MAX_SEC) stopRecording(true);
+  };
+
+  recording = true;
+  gate.classList.add('hidden');
+  recBadge.style.display = 'flex';
+  stopBtn.style.display = '';
+  playBtn.style.display = 'none';
+  againBtn.style.display = 'none';
+  hintEl.textContent = 'SPEAK NATURALLY · 2–15 SECONDS';
+  setState('RECORDING', 'rec');
+  waveHud.textContent = 'VOX · CAPTURING @ ' + (recSr/1000).toFixed(1) + ' kHz';
+  log('ok', 'mic stream up · ' + recSr + ' Hz');
+  liveLoop();
+}
+
+function liveLoop(){
+  if(!recording) return;
+  analyser.getFloatTimeDomainData(liveBuf);
+  var W = waveCanvas.clientWidth, H = waveCanvas.clientHeight;
+  wctx.clearRect(0, 0, W, H);
+  wctx.strokeStyle = 'rgba(148,163,184,0.15)';
+  wctx.lineWidth = 1;
+  wctx.beginPath(); wctx.moveTo(0, H/2); wctx.lineTo(W, H/2); wctx.stroke();
+  wctx.beginPath();
+  var step = Math.max(1, Math.floor(liveBuf.length / W));
+  for(var x = 0; x < W; x++){
+    var v = liveBuf[Math.min(liveBuf.length - 1, x * step)];
+    var y = H/2 + v * H * 0.44;
+    if(x === 0) wctx.moveTo(x, y); else wctx.lineTo(x, y);
+  }
+  wctx.strokeStyle = 'rgba(56,225,255,0.85)';
+  wctx.lineWidth = 1.4;
+  wctx.shadowColor = 'rgba(56,225,255,0.4)';
+  wctx.shadowBlur = 5;
+  wctx.stroke();
+  wctx.shadowBlur = 0;
+
+  var sec = recSamples / recSr;
+  timerEl.textContent = pad(Math.floor(sec/60),2) + ':' + pad(Math.floor(sec%60),2) + '.' + Math.floor((sec%1)*10);
+  recProgress.style.width = Math.min(100, sec / MAX_SEC * 100) + '%';
+  requestAnimationFrame(liveLoop);
+}
+
+function teardownAudio(){
+  recording = false;
+  if(proc){ proc.onaudioprocess = null; try{ proc.disconnect(); }catch(e){} proc = null; }
+  if(srcNode){ try{ srcNode.disconnect(); }catch(e){} srcNode = null; }
+  if(silentGain){ try{ silentGain.disconnect(); }catch(e){} silentGain = null; }
+  if(recStream){ recStream.getTracks().forEach(function(t){ t.stop(); }); recStream = null; }
+  if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx = null; }
+  analyser = null;
+  recBadge.style.display = 'none';
+  stopBtn.style.display = 'none';
+}
+
+function stopRecording(auto){
+  if(!recording) return;
+  teardownAudio();
+  recProgress.style.width = '0%';
+  if(auto) log('info', 'max length reached — auto-stopped');
+  var total = new Float32Array(recSamples);
+  var off = 0;
+  for(var i = 0; i < chunks.length; i++){ total.set(chunks[i], off); off += chunks[i].length; }
+  chunks = [];
+  log('info', 'sample captured · ' + (total.length / recSr).toFixed(1) + 's');
+  makePlayer(pcmToWav(total, recSr));
+  runAnalysis(total, recSr, 'recording');
+}
+
+/* ---------- upload ---------- */
+uploadBtn.addEventListener('click', function(){ fileInput.click(); });
+fileInput.addEventListener('change', async function(){
+  var file = fileInput.files && fileInput.files[0];
+  fileInput.value = '';
+  if(!file) return;
+  gateStatus.classList.remove('err');
+  gateStatus.textContent = 'DECODING AUDIO…';
+  log('info', 'decoding "' + file.name.replace(/[<>&"]/g,'') + '"');
+  var ctx = null;
+  try{
+    var ab = await file.arrayBuffer();
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var buf = await ctx.decodeAudioData(ab);
+    var sr = buf.sampleRate;
+    var len = Math.min(buf.length, sr * 30); /* cap at 30s */
+    var mono = new Float32Array(len);
+    for(var ch = 0; ch < buf.numberOfChannels; ch++){
+      var data = buf.getChannelData(ch);
+      for(var i = 0; i < len; i++) mono[i] += data[i] / buf.numberOfChannels;
+    }
+    try{ ctx.close(); }catch(e){}
+    if(buf.length > len) log('warn', 'clip truncated to first 30s');
+    gate.classList.add('hidden');
+    makePlayer(file);
+    runAnalysis(mono, sr, 'upload');
+  }catch(e){
+    if(ctx){ try{ ctx.close(); }catch(e2){} }
+    gateError('Could not decode audio', 'That file could not be read as audio. Try a common format (MP3, WAV, M4A, OGG).');
+    log('crit', 'audio decode failed');
+  }
+});
+
+/* ---------- playback ---------- */
+function makePlayer(blob){
+  if(playUrl){ URL.revokeObjectURL(playUrl); playUrl = null; }
+  if(player){ try{ player.pause(); }catch(e){} player = null; }
+  playUrl = URL.createObjectURL(blob);
+  player = new Audio(playUrl);
+  player.onended = function(){ playBtn.textContent = '▶ Replay'; };
+}
+playBtn.addEventListener('click', function(){
+  if(!player) return;
+  if(player.paused){ player.play(); playBtn.textContent = '❚❚ Pause'; }
+  else { player.pause(); playBtn.textContent = '▶ Replay'; }
+});
+againBtn.addEventListener('click', function(){
+  if(player){ try{ player.pause(); }catch(e){} }
+  playBtn.textContent = '▶ Replay';
+  resetResults();
+  gateMessage('Record a voice sample', 'Speak naturally for a few seconds — read a sentence, describe your day. The prosody engine will estimate the emotional state of the voice.', '');
+  setState('STANDBY', '');
+});
+
+/* ---------- WAV encoding (16-bit mono) ---------- */
+function pcmToWav(pcm, sr){
+  var n = pcm.length;
+  var ab = new ArrayBuffer(44 + n * 2);
+  var dv = new DataView(ab);
+  function wstr(off, s){ for(var i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i)); }
+  wstr(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); wstr(8, 'WAVE');
+  wstr(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  wstr(36, 'data'); dv.setUint32(40, n * 2, true);
+  for(var i = 0; i < n; i++){
+    var v = Math.max(-1, Math.min(1, pcm[i]));
+    dv.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7FFF, true);
+  }
+  return new Blob([ab], {type:'audio/wav'});
+}
+
+/* ---------- envelope drawing ---------- */
+function drawEnvelope(pcm){
+  var W = waveCanvas.clientWidth, H = waveCanvas.clientHeight;
+  wctx.clearRect(0, 0, W, H);
+  wctx.strokeStyle = 'rgba(148,163,184,0.15)';
+  wctx.lineWidth = 1;
+  wctx.beginPath(); wctx.moveTo(0, H/2); wctx.lineTo(W, H/2); wctx.stroke();
+  var per = Math.max(1, Math.floor(pcm.length / W));
+  wctx.fillStyle = 'rgba(56,225,255,0.55)';
+  for(var x = 0; x < W; x++){
+    var lo = 0, hi = 0;
+    var base = x * per, end = Math.min(pcm.length, base + per);
+    for(var i = base; i < end; i++){
+      if(pcm[i] < lo) lo = pcm[i];
+      if(pcm[i] > hi) hi = pcm[i];
+    }
+    var y1 = H/2 + lo * H * 0.46, y2 = H/2 + hi * H * 0.46;
+    wctx.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+}
+
+/* ---------- analysis pipeline ---------- */
+function runAnalysis(pcm, sr, source){
+  setState('ANALYZING', 'busy');
+  waveHud.textContent = 'VOX · ANALYZING…';
+  hintEl.textContent = 'EXTRACTING PROSODIC FEATURES';
+  log('info', 'prosody extraction started (' + source + ')');
+  lastPcm = pcm; lastSr = sr;
+  drawEnvelope(pcm);
+  /* defer so the UI paints the analyzing state first */
+  setTimeout(function(){
+    var f = extractFeatures(pcm, sr);
+    if(!f || f.speechDur < MIN_SPEECH_SEC){
+      setState('STANDBY', '');
+      waveHud.textContent = 'VOX · SAMPLE REJECTED';
+      hintEl.textContent = 'SPEAK NATURALLY · 2–15 SECONDS';
+      gateMessage('Not enough speech', 'The sample needs at least ~2 seconds of audible speech. Try again, a little closer to the mic.', 'SAMPLE TOO SHORT');
+      log('warn', 'rejected — insufficient speech in sample');
+      return;
+    }
+    var r = scoreEmotions(f);
+    renderResults(f, r);
+  }, 60);
+}
+
+function frameRms(pcm, start, win){
+  var sum = 0;
+  for(var i = start; i < start + win; i++) sum += pcm[i] * pcm[i];
+  return Math.sqrt(sum / win);
+}
+
+/* pitch on a ~8 kHz decimated copy — F0 tops out at 400 Hz, and this cuts the
+   autocorrelation cost ~40x so long clips analyze in well under a second */
+function framePitch(dec, startD, srD){
+  var SIZE = Math.min(512, dec.length - startD);
+  if(SIZE < 128) return 0;
+  var rms = frameRms(dec, startD, SIZE);
+  if(rms < 0.006) return 0;
+  var minLag = Math.floor(srD / 400);
+  var maxLag = Math.min(Math.floor(srD / 60), SIZE - 1);
+  var best = 0, bestLag = 0, zero = 0;
+  for(var j = startD; j < startD + SIZE; j++) zero += dec[j] * dec[j];
+  for(var lag = minLag; lag <= maxLag; lag++){
+    var sum = 0;
+    for(var k = startD; k < startD + SIZE - lag; k++) sum += dec[k] * dec[k + lag];
+    if(sum > best){ best = sum; bestLag = lag; }
+  }
+  if(!bestLag || best / zero < 0.45) return 0;
+  return srD / bestLag;
+}
+
+function extractFeatures(pcm, sr){
+  /* normalize peak so uploads at odd levels behave */
+  var peak = 0;
+  for(var i = 0; i < pcm.length; i++){ var a = Math.abs(pcm[i]); if(a > peak) peak = a; }
+  if(peak > 0.001 && (peak < 0.5 || peak > 0.99)){
+    var g = 0.9 / peak;
+    for(var i2 = 0; i2 < pcm.length; i2++) pcm[i2] *= g;
+  }
+
+  var win = 2048, hop = 512;
+  var n = Math.floor((pcm.length - win) / hop) + 1;
+  if(n < 8) return null;
+
+  /* decimated copy for pitch analysis */
+  var D = Math.max(1, Math.round(sr / 8000));
+  var srD = sr / D;
+  var dlen = Math.floor(pcm.length / D);
+  var dec = new Float32Array(dlen);
+  for(var di = 0; di < dlen; di++){
+    var acc = 0, b = di * D;
+    for(var dj = 0; dj < D; dj++) acc += pcm[b + dj];
+    dec[di] = acc / D;
+  }
+
+  var rms = new Float32Array(n), f0 = new Float32Array(n);
+  for(var fi = 0; fi < n; fi++){
+    rms[fi] = frameRms(pcm, fi * hop, win);
+    f0[fi] = framePitch(dec, Math.floor(fi * hop / D), srD);
+  }
+  /* median-filter the pitch track (3-wide) to kill octave spikes */
+  for(var m = 1; m < n - 1; m++){
+    if(f0[m] > 0 && f0[m-1] > 0 && f0[m+1] > 0){
+      var a3 = [f0[m-1], f0[m], f0[m+1]].sort(function(x, y){ return x - y; });
+      f0[m] = a3[1];
+    }
+  }
+
+  /* speech mask + trim */
+  var sorted = Array.prototype.slice.call(rms).sort(function(a, b){ return a - b; });
+  var p95 = sorted[Math.floor(sorted.length * 0.95)];
+  var thr = Math.max(0.005, p95 * 0.07);
+  var first = -1, last = -1;
+  for(var t = 0; t < n; t++){ if(rms[t] > thr){ if(first < 0) first = t; last = t; } }
+  if(first < 0) return null;
+
+  var frames = last - first + 1;
+  var frameSec = hop / sr;
+  var speechFrames = 0, voicedFrames = 0;
+  var f0s = [], rmsSpeech = [];
+  for(var q = first; q <= last; q++){
+    if(rms[q] > thr){ speechFrames++; rmsSpeech.push(rms[q]); }
+    if(f0[q] > 0){ voicedFrames++; f0s.push({t: q * frameSec, v: f0[q]}); }
+  }
+  var speechDur = speechFrames * frameSec;
+  var pauseRatio = 1 - speechFrames / frames;
+  var voicedRatio = speechFrames ? voicedFrames / speechFrames : 0;
+
+  /* pitch stats */
+  var meanF0 = 0, stdF0 = 0, jitter = 0, rangeRel = 0, slopeRel = 0;
+  if(f0s.length > 4){
+    f0s.forEach(function(p){ meanF0 += p.v; });
+    meanF0 /= f0s.length;
+    f0s.forEach(function(p){ stdF0 += (p.v - meanF0) * (p.v - meanF0); });
+    stdF0 = Math.sqrt(stdF0 / f0s.length);
+    var vals = f0s.map(function(p){ return p.v; }).sort(function(a, b){ return a - b; });
+    var p10 = vals[Math.floor(vals.length * 0.1)];
+    var p90 = vals[Math.floor(vals.length * 0.9)];
+    rangeRel = (p90 - p10) / meanF0;
+    var jsum = 0, jn = 0;
+    for(var j2 = 1; j2 < f0s.length; j2++){
+      if(f0s[j2].t - f0s[j2-1].t < frameSec * 2.5){ jsum += Math.abs(f0s[j2].v - f0s[j2-1].v); jn++; }
+    }
+    jitter = jn ? (jsum / jn) / meanF0 : 0;
+    /* linear fit for contour slope */
+    var mt = 0, mv = 0;
+    f0s.forEach(function(p){ mt += p.t; mv += p.v; });
+    mt /= f0s.length; mv /= f0s.length;
+    var num = 0, den = 0;
+    f0s.forEach(function(p){ num += (p.t - mt) * (p.v - mv); den += (p.t - mt) * (p.t - mt); });
+    var slope = den > 0 ? num / den : 0; /* Hz per second */
+    var dur0 = f0s[f0s.length - 1].t - f0s[0].t;
+    slopeRel = meanF0 > 0 ? (slope * Math.max(dur0, 0.5)) / meanF0 : 0;
+  }
+
+  /* energy stats */
+  var rmsMean = 0;
+  rmsSpeech.forEach(function(v){ rmsMean += v; });
+  rmsMean /= Math.max(1, rmsSpeech.length);
+  var rmsStd = 0;
+  rmsSpeech.forEach(function(v){ rmsStd += (v - rmsMean) * (v - rmsMean); });
+  rmsStd = Math.sqrt(rmsStd / Math.max(1, rmsSpeech.length));
+  var rmsCV = rmsMean > 0 ? rmsStd / rmsMean : 0;
+  var db = rmsMean > 0 ? 20 * Math.log10(rmsMean) : -60;
+
+  /* speaking-rate proxy: energy peaks per second of speech */
+  var peaks = 0, lastPeakT = -1;
+  var minGap = 0.12;
+  for(var e = first + 1; e < last; e++){
+    if(rms[e] > rms[e-1] && rms[e] >= rms[e+1] && rms[e] > rmsMean * 1.1){
+      var tt = e * frameSec;
+      if(tt - lastPeakT >= minGap){ peaks++; lastPeakT = tt; }
+    }
+  }
+  var rate = speechDur > 0 ? peaks / speechDur : 0;
+
+  return {
+    clipDur: pcm.length / sr, speechDur: speechDur, pauseRatio: pauseRatio,
+    voicedRatio: voicedRatio, meanF0: meanF0, stdF0: stdF0, rangeRel: rangeRel,
+    jitter: jitter, slopeRel: slopeRel, db: db, rmsCV: rmsCV, rate: rate,
+    frames: n, sr: sr
+  };
+}
+
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+function scoreEmotions(f){
+  var nRate  = clamp01((f.rate - 2.0) / 3.2);
+  var nEng   = clamp01((f.db + 40) / 20);
+  var nDyn   = clamp01(f.rmsCV / 0.85);
+  var nJit   = clamp01((f.jitter - 0.015) / 0.09);
+  var nRange = clamp01(f.rangeRel / 0.42);
+  var nPause = clamp01(f.pauseRatio / 0.55);
+  var up     = clamp01(f.slopeRel / 0.18);
+  var down   = clamp01(-f.slopeRel / 0.18);
+  var brief  = clamp01((3.2 - f.speechDur) / 2.4);
+
+  var s = {
+    calm:      0.34*(1-nDyn) + 0.26*(1-nJit) + 0.20*(1-nRate) + 0.20*(1-nRange) - 0.18*nPause - 0.10*nEng,
+    happy:     0.30*nRange + 0.26*nRate + 0.20*nEng + 0.14*up + 0.10*nDyn - 0.16*nPause,
+    surprised: 0.34*nRange + 0.22*up + 0.22*brief + 0.12*nJit + 0.10*nEng,
+    nervous:   0.32*nJit + 0.24*nPause + 0.18*nRate + 0.16*nRange + 0.10*nDyn - 0.08*nEng,
+    angry:     0.30*nEng + 0.24*nDyn + 0.22*nRate + 0.14*nRange - 0.18*nPause - 0.12*nJit,
+    sad:       0.30*(1-nRate) + 0.26*(1-nEng) + 0.20*nPause + 0.14*down - 0.16*nRange
+  };
+  var total = 0, k;
+  for(k in s){ s[k] = Math.max(0.02, s[k]); total += s[k]; }
+  for(k in s){ s[k] = s[k] / total; }
+  var stress = 100 * clamp01(0.32*nJit + 0.22*nPause + 0.20*nDyn + 0.16*nRange + 0.10*nEng);
+  return {scores: s, stress: stress};
+}
+
+/* ---------- results ---------- */
+var ARC = 198;
+function renderResults(f, r){
+  setState('COMPLETE', 'done');
+  if(lastPcm) drawEnvelope(lastPcm); /* redraw post-normalization so quiet clips are visible */
+  waveHud.textContent = 'VOX · SAMPLE ANALYZED';
+  hintEl.textContent = 'PROSODY ESTIMATE — DEMO-GRADE, NOT A CLINICAL MEASURE';
+  timerEl.textContent = pad(Math.floor(f.clipDur/60),2) + ':' + pad(Math.floor(f.clipDur%60),2) + '.' + Math.floor((f.clipDur%1)*10);
+  playBtn.style.display = '';
+  againBtn.style.display = '';
+
+  var domKey = 'calm', domVal = 0;
+  EMOTIONS.forEach(function(e){
+    var pct = Math.round(r.scores[e.key] * 100);
+    rowEls[e.key].val.textContent = pct + '%';
+    rowEls[e.key].fill.style.width = pct + '%';
+    var isDom = r.scores[e.key] > domVal;
+    if(isDom){ domVal = r.scores[e.key]; domKey = e.key; }
+  });
+  EMOTIONS.forEach(function(e){
+    rowEls[e.key].row.classList.toggle('dominant', e.key === domKey);
+  });
+
+  var domLabel = EMOTIONS.filter(function(e){ return e.key === domKey; })[0].label;
+  var verdict = document.getElementById('verdict');
+  verdict.style.display = '';
+  document.getElementById('v-emotion').innerHTML = domLabel.toUpperCase() + ' <span>' + Math.round(domVal * 100) + '%</span>';
+  var lowConf = f.voicedRatio < 0.18;
+  document.getElementById('v-desc').textContent = VERDICTS[domKey] + (lowConf ? ' (Low confidence — little voiced speech detected.)' : '');
+
+  var gv = document.getElementById('gauge-val');
+  gv.style.strokeDashoffset = String(ARC - (Math.min(r.stress, 100) / 100) * ARC);
+  gv.style.stroke = r.stress < 35 ? '#34d399' : r.stress < 65 ? '#fbbf24' : '#f87171';
+  document.getElementById('gauge-num').textContent = String(Math.round(r.stress));
+
+  document.getElementById('f-f0').textContent = f.meanF0 > 0 ? f.meanF0.toFixed(0) + ' Hz' : '—';
+  document.getElementById('f-range').textContent = f.meanF0 > 0 ? '±' + Math.round(f.rangeRel * 100) + '%' : '—';
+  document.getElementById('f-jit').textContent = f.meanF0 > 0 ? (f.jitter * 100).toFixed(1) + '%' : '—';
+  document.getElementById('f-db').textContent = f.db.toFixed(0) + ' dB';
+  document.getElementById('f-rate').textContent = f.rate.toFixed(1) + ' /s';
+  document.getElementById('f-pause').textContent = Math.round(f.pauseRatio * 100) + '%';
+
+  document.getElementById('st-dur').textContent = f.clipDur.toFixed(1) + 's';
+  document.getElementById('st-sr').textContent = (f.sr / 1000).toFixed(1) + ' kHz';
+  document.getElementById('st-frames').textContent = String(f.frames);
+  document.getElementById('st-voiced').textContent = Math.round(f.voicedRatio * 100) + '%';
+
+  log('ok', 'analysis complete · dominant ' + domKey.toUpperCase() + ' ' + Math.round(domVal * 100) + '%');
+  if(r.stress >= 65) log('crit', 'vocal stress index ' + Math.round(r.stress) + ' — HIGH');
+  else if(r.stress >= 35) log('warn', 'vocal stress index ' + Math.round(r.stress) + ' — ELEVATED');
+  else log('ok', 'vocal stress index ' + Math.round(r.stress) + ' — LOW');
+}
+
+function resetResults(){
+  EMOTIONS.forEach(function(e){
+    rowEls[e.key].val.textContent = '—';
+    rowEls[e.key].fill.style.width = '0%';
+    rowEls[e.key].row.classList.remove('dominant');
+  });
+  document.getElementById('verdict').style.display = 'none';
+  document.getElementById('gauge-num').textContent = '—';
+  document.getElementById('gauge-val').style.strokeDashoffset = String(ARC);
+  ['f-f0','f-range','f-jit','f-db','f-rate','f-pause','st-dur','st-sr','st-frames','st-voiced'].forEach(function(id){
+    document.getElementById(id).textContent = '—';
+  });
+  playBtn.style.display = 'none';
+  againBtn.style.display = 'none';
+  timerEl.textContent = '00:00.0';
+  waveHud.textContent = 'VOX · AWAITING SAMPLE';
+  hintEl.textContent = 'SPEAK NATURALLY · 2–15 SECONDS';
+  var W = waveCanvas.clientWidth, H = waveCanvas.clientHeight;
+  wctx.clearRect(0, 0, W, H);
+  lastPcm = null;
+}
+
+/* release mic when leaving */
+window.addEventListener('pagehide', function(){
+  if(recStream) recStream.getTracks().forEach(function(t){ t.stop(); });
+});
+
+})();
+</script>
+</body>
+</html>
