@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Emoticore — Behavioral Threat Detection for Live Environments</title>
 <meta name="description" content="Emoticore fuses live vision and speech analysis into a single behavioral threat picture. Detect intent before it becomes incident.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2338e1ff'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='3' y='3' width='58' height='58' rx='12' fill='%2305070d'/%3E%3Crect x='3' y='3' width='58' height='58' rx='12' fill='none' stroke='%2338e1ff' stroke-width='3.5'/%3E%3Crect x='20' y='20' width='24' height='24' rx='5' fill='url(%23g)'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#05070d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Emoticore — Behavioral Threat Detection">
+<meta property="og:description" content="Live camera + voice fused into one threat picture. Try the real demos in your browser — everything on-device.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -679,8 +684,8 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       <a href="voice.html">Voice demo</a>
     </div>
     <div class="nav-cta">
-      <a href="voice.html" class="btn btn-ghost">Voice demo</a>
-      <a href="demo.html" class="btn btn-primary">Camera demo</a>
+      <a href="demo.html" class="btn btn-ghost">Live demos</a>
+      <a href="console.html" class="btn btn-primary">Launch console</a>
       <button class="menu-btn" id="menu-btn" aria-label="Toggle menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -691,8 +696,9 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
   <a href="#platform">Platform</a>
   <a href="#pipeline">Pipeline</a>
   <a href="#deployments">Deployments</a>
+  <a href="demo.html">Camera demo</a>
   <a href="voice.html">Voice demo</a>
-  <a href="demo.html" class="btn btn-primary">Camera demo</a>
+  <a href="console.html" class="btn btn-primary">Launch console</a>
 </div>
 
 <!-- ============ HERO ============ -->
@@ -706,8 +712,8 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       <h1 class="boot" style="--b:.15s">Detect <span class="grad">intent</span> before it becomes incident.</h1>
       <p class="hero-sub boot" style="--b:.3s">Emoticore fuses live camera feeds and speech analysis into one behavioral threat picture — surfacing what humans miss and what legacy systems ignore.</p>
       <div class="hero-ctas boot" style="--b:.45s">
-        <a href="demo.html" class="btn btn-primary">Try the camera demo <span class="arr">→</span></a>
-        <a href="voice.html" class="btn btn-ghost">Analyze your voice</a>
+        <a href="console.html" class="btn btn-primary">Launch the live console <span class="arr">→</span></a>
+        <a href="demo.html" class="btn btn-ghost">Try the demos</a>
       </div>
       <div class="hero-metrics boot" style="--b:.6s">
         <div class="m"><div class="v num"><span data-count="99.2" data-decimals="1">0</span><i>%</i></div><div class="l">Classification accuracy</div></div>
@@ -853,7 +859,7 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
     <div class="sec-head rv">
       <span class="tag">Operations console</span>
       <h2>What your security team sees. Every second of every shift.</h2>
-      <p>One pane of glass across every stream — live affect telemetry, a rolling threat index, and an auditable event log. The panel below is a simulation — <a href="demo.html" style="color:var(--cyan)">run the real thing on your own camera →</a></p>
+      <p>One pane of glass across every stream — live affect telemetry, a rolling threat index, and an auditable event log. The panel below is a simulation — <a href="console.html" style="color:var(--cyan)">launch the real console on your own camera →</a></p>
     </div>
     <div class="dash rv" style="--d:.1s">
       <div class="dash-bar">
@@ -963,8 +969,9 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
     <h2>See what you've been missing.</h2>
     <p>Run Emoticore against your own camera and voice — right now, in this browser. No signup, no install, and nothing leaves your device.</p>
     <div class="row">
-      <a href="demo.html" class="btn btn-primary">Launch camera demo <span class="arr">→</span></a>
-      <a href="voice.html" class="btn btn-ghost">Analyze your voice</a>
+      <a href="console.html" class="btn btn-primary">Launch the operations console <span class="arr">→</span></a>
+      <a href="demo.html" class="btn btn-ghost">Camera demo</a>
+      <a href="voice.html" class="btn btn-ghost">Voice demo</a>
     </div>
     <div class="cta-note">NO ACCOUNT · ON-DEVICE · RUNS IN YOUR BROWSER</div>
   </div>
@@ -980,10 +987,10 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       </div>
       <div class="f-col">
         <h5>Product</h5>
-        <a href="#platform">Platform</a>
+        <a href="console.html">Operations console</a>
         <a href="demo.html">Camera demo</a>
         <a href="voice.html">Voice demo</a>
-        <a href="#pipeline">Pipeline</a>
+        <a href="#platform">Platform</a>
       </div>
       <div class="f-col">
         <h5>Company</h5>
