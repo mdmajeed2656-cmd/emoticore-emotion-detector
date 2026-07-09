@@ -253,6 +253,14 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .tele-log .crit{color:var(--crit);}
 .tele-log .info{color:var(--ink-2);}
 
+/* threat sparkline */
+.spark{position:relative;height:56px;border-top:1px solid var(--line-soft);background:#04060b;}
+#spark-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.spark-hud{
+  position:absolute;top:6px;left:14px;pointer-events:none;
+  font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.14em;color:var(--ink-3);
+}
+
 /* bottom strip */
 .dash-strip{
   border-top:1px solid var(--line-soft);
@@ -372,6 +380,11 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
             <div class="tele-log" id="log"></div>
           </div>
         </div>
+      </div>
+
+      <div class="spark">
+        <canvas id="spark-canvas"></canvas>
+        <span class="spark-hud num">THREAT INDEX · LAST 90s</span>
       </div>
 
       <div class="dash-strip num">
@@ -645,6 +658,8 @@ function stop(){
   document.getElementById('st-lat').textContent = '— ms';
   document.getElementById('st-faces').textContent = '0';
   document.getElementById('st-engine').textContent = 'STANDBY';
+  tracks = [];
+  nextTrackId = 1;
   log('warn', 'feed terminated by operator');
 }
 stopBtn.addEventListener('click', stop);
@@ -697,6 +712,46 @@ async function detectLoop(){
 /* mirror x because the video is CSS-flipped for a natural selfie view */
 function mx(x, W){ return W - x; }
 
+/* ---------- subject tracker: greedy IoU matching for stable IDs ---------- */
+var tracks = [], nextTrackId = 1, lastPrimaryLabel = 'SUBJ_01';
+function boxIoU(a, b){
+  var x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y);
+  var x2 = Math.min(a.x + a.width, b.x + b.width);
+  var y2 = Math.min(a.y + a.height, b.y + b.height);
+  var inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  var union = a.width * a.height + b.width * b.height - inter;
+  return union > 0 ? inter / union : 0;
+}
+function assignTracks(dets){
+  var now = performance.now();
+  var assigned = dets.map(function(){ return 0; });
+  var pairs = [];
+  dets.forEach(function(d, i){
+    tracks.forEach(function(tr, j){
+      var iou = boxIoU(d.detection.box, tr.box);
+      if(iou > 0.2) pairs.push({i: i, j: j, iou: iou});
+    });
+  });
+  pairs.sort(function(a, b){ return b.iou - a.iou; });
+  var takenDet = {}, takenTr = {};
+  pairs.forEach(function(p){
+    if(takenDet[p.i] || takenTr[p.j]) return;
+    takenDet[p.i] = true; takenTr[p.j] = true;
+    tracks[p.j].box = dets[p.i].detection.box;
+    tracks[p.j].lastSeen = now;
+    assigned[p.i] = tracks[p.j].id;
+  });
+  dets.forEach(function(d, i){
+    if(!assigned[i]){
+      var tr = {id: nextTrackId++, box: d.detection.box, lastSeen: now};
+      tracks.push(tr);
+      assigned[i] = tr.id;
+    }
+  });
+  tracks = tracks.filter(function(tr){ return now - tr.lastSeen < 1200; });
+  return assigned;
+}
+
 function draw(dets, W, H){
   octx.clearRect(0, 0, W, H);
   if(!dets.length) return;
@@ -707,6 +762,8 @@ function draw(dets, W, H){
     var b = d.detection.box;
     if(b.width * b.height > maxA){ maxA = b.width * b.height; primary = i; }
   });
+  var ids = assignTracks(dets);
+  lastPrimaryLabel = 'SUBJ_' + pad(ids[primary], 2);
 
   dets.forEach(function(d, i){
     var b = d.detection.box;
@@ -740,7 +797,7 @@ function draw(dets, W, H){
     var domKey = topExpression(d.expressions);
     octx.font = '10px "IBM Plex Mono", monospace';
     octx.fillStyle = col;
-    var label = (isP ? 'SUBJ_01' : 'TRK_0' + (i + 1)) + ' · ' + domKey.toUpperCase() + ' · ' + conf.toFixed(2);
+    var label = 'SUBJ_' + pad(ids[i], 2) + ' · ' + domKey.toUpperCase() + ' · ' + conf.toFixed(2);
     octx.fillText(label, x, Math.max(12, y - 8));
   });
 }
@@ -764,7 +821,7 @@ function telemetry(dets, lat){
     else log('warn', 'subject lost · signal dropped');
   }
   document.getElementById('hud-subj').textContent = hasFace
-    ? 'SUBJ_01 · LOCKED (' + dets.length + ' IN FRAME)'
+    ? lastPrimaryLabel + ' · LOCKED (' + dets.length + ' IN FRAME)'
     : 'SUBJ — · SEARCHING';
 
   if(!hasFace){
@@ -815,6 +872,60 @@ function telemetry(dets, lat){
   threatIdx += (raw - threatIdx) * 0.12;
   renderThreat(threatIdx, true);
 }
+
+/* ---------- threat sparkline (last 90s) ---------- */
+var sparkCanvas = document.getElementById('spark-canvas');
+var sctx = sparkCanvas.getContext('2d');
+var sparkData = [];
+var SPARK_MS = 90000;
+
+function sizeSpark(){
+  var w = sparkCanvas.clientWidth, h = sparkCanvas.clientHeight;
+  sparkCanvas.width = w * DPR;
+  sparkCanvas.height = h * DPR;
+  sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+sizeSpark();
+window.addEventListener('resize', function(){ sizeSpark(); drawSpark(); });
+
+function drawSpark(){
+  var W = sparkCanvas.clientWidth, H = sparkCanvas.clientHeight;
+  sctx.clearRect(0, 0, W, H);
+  function yOf(v){ return H - 6 - (v / 100) * (H - 22); }
+  /* threshold guides at ELEVATED 35 / HIGH 65 */
+  sctx.setLineDash([3, 5]);
+  sctx.strokeStyle = 'rgba(251,191,36,0.25)';
+  sctx.beginPath(); sctx.moveTo(0, yOf(35)); sctx.lineTo(W, yOf(35)); sctx.stroke();
+  sctx.strokeStyle = 'rgba(248,113,113,0.3)';
+  sctx.beginPath(); sctx.moveTo(0, yOf(65)); sctx.lineTo(W, yOf(65)); sctx.stroke();
+  sctx.setLineDash([]);
+  if(sparkData.length < 2) return;
+  var tEnd = sparkData[sparkData.length - 1].t;
+  var tStart = Math.max(sparkData[0].t, tEnd - SPARK_MS);
+  var span = Math.max(tEnd - tStart, 8000);
+  sctx.strokeStyle = 'rgba(56,225,255,0.9)';
+  sctx.lineWidth = 1.4;
+  sctx.beginPath();
+  var started = false;
+  for(var i = 0; i < sparkData.length; i++){
+    var p = sparkData[i];
+    if(p.t < tStart) continue;
+    var x = ((p.t - tStart) / span) * W;
+    var y = yOf(p.v);
+    if(!started){ sctx.moveTo(x, y); started = true; }
+    else sctx.lineTo(x, y);
+  }
+  sctx.stroke();
+}
+drawSpark();
+
+setInterval(function(){
+  if(!running) return;
+  var now = performance.now();
+  sparkData.push({t: now, v: threatIdx});
+  while(sparkData.length && sparkData[0].t < now - SPARK_MS - 2000) sparkData.shift();
+  drawSpark();
+}, 500);
 
 /* release camera when leaving the page */
 window.addEventListener('pagehide', function(){

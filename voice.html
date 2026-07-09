@@ -259,6 +259,28 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .f-grid .kv{display:flex;justify-content:space-between;gap:8px;color:var(--ink-3);}
 .f-grid .kv b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums;text-align:right;}
 
+/* history */
+.vhist{margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft);}
+.vhist .vhist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.vhist .vhist-head h4{margin-bottom:0;}
+.vhist .vhist-head button{
+  font-family:var(--font-mono);font-size:0.56rem;letter-spacing:0.12em;
+  color:var(--ink-3);border:1px solid var(--line);border-radius:3px;padding:3px 8px;
+}
+.vhist .vhist-head button:hover{color:var(--crit);border-color:rgba(248,113,113,0.4);}
+.hist-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-family:var(--font-mono);font-size:0.62rem;color:var(--ink-3);
+  padding:7px 2px;border-bottom:1px solid var(--line-soft);cursor:pointer;
+  transition:background .15s ease;
+}
+.hist-item:hover{background:rgba(56,225,255,0.04);}
+.hist-item .dom{color:var(--cyan);}
+.hist-item b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums;}
+.hist-bars{display:flex;align-items:flex-end;gap:2px;height:16px;flex:none;}
+.hist-bars i{width:4px;background:linear-gradient(180deg,var(--cyan),var(--violet));border-radius:1px 1px 0 0;min-height:1px;}
+.hist-empty{font-family:var(--font-mono);font-size:0.6rem;color:var(--ink-3);letter-spacing:0.1em;padding:8px 0;}
+
 .side-log{margin-top:auto;padding-top:16px;border-top:1px solid var(--line-soft);}
 .tele-log{
   font-family:var(--font-mono);font-size:0.66rem;line-height:1.75;
@@ -410,6 +432,14 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
               <span class="kv">RATE <b id="f-rate">—</b></span>
               <span class="kv">PAUSES <b id="f-pause">—</b></span>
             </div>
+          </div>
+
+          <div class="vhist">
+            <div class="vhist-head">
+              <h4>Recent analyses</h4>
+              <button id="hist-clear">CLEAR</button>
+            </div>
+            <div id="hist-list"></div>
           </div>
 
           <div class="side-log">
@@ -1014,6 +1044,7 @@ function renderResults(f, r){
   if(r.stress >= 65) log('crit', 'vocal stress index ' + Math.round(r.stress) + ' — HIGH');
   else if(r.stress >= 35) log('warn', 'vocal stress index ' + Math.round(r.stress) + ' — ELEVATED');
   else log('ok', 'vocal stress index ' + Math.round(r.stress) + ' — LOW');
+  pushHist(f, r, domKey);
 }
 
 function resetResults(){
@@ -1037,6 +1068,78 @@ function resetResults(){
   wctx.clearRect(0, 0, W, H);
   lastPcm = null;
 }
+
+/* ---------- analysis history (localStorage) ---------- */
+var HIST_KEY = 'emoticore.voxhistory.v1';
+function loadHist(){
+  try{ return JSON.parse(localStorage.getItem(HIST_KEY)) || []; }catch(e){ return []; }
+}
+function saveHist(h){
+  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch(e){}
+}
+function pushHist(f, r, domKey){
+  var h = loadHist();
+  h.unshift({
+    ts: Date.now(),
+    dur: Math.round(f.clipDur * 10) / 10,
+    dom: domKey,
+    domPct: Math.round((r.scores[domKey] || 0) * 100),
+    stress: Math.round(r.stress),
+    scores: EMOTIONS.map(function(e){ return Math.round((r.scores[e.key] || 0) * 100); })
+  });
+  h = h.slice(0, 5);
+  saveHist(h);
+  renderHist();
+}
+function renderHist(){
+  var host = document.getElementById('hist-list');
+  var h = loadHist();
+  host.innerHTML = '';
+  if(!h.length){
+    host.innerHTML = '<div class="hist-empty">NO SAMPLES ANALYZED YET</div>';
+    return;
+  }
+  h.forEach(function(en){
+    var d = new Date(en.ts);
+    var item = document.createElement('div');
+    item.className = 'hist-item';
+    item.title = 'Click to re-view this result';
+    var bars = en.scores.map(function(pct){
+      return '<i style="height:' + Math.max(6, pct * 0.16) + 'px"></i>';
+    }).join('');
+    item.innerHTML =
+      '<span class="num">' + pad(d.getHours(),2) + ':' + pad(d.getMinutes(),2) + '</span>' +
+      '<span><span class="dom">' + en.dom.toUpperCase() + '</span> <b>' + en.domPct + '%</b></span>' +
+      '<span>stress <b>' + en.stress + '</b></span>' +
+      '<span class="hist-bars">' + bars + '</span>';
+    item.addEventListener('click', function(){ restoreHist(en); });
+    host.appendChild(item);
+  });
+}
+function restoreHist(en){
+  EMOTIONS.forEach(function(e, i){
+    var pct = en.scores[i] || 0;
+    rowEls[e.key].val.textContent = pct + '%';
+    rowEls[e.key].fill.style.width = pct + '%';
+    rowEls[e.key].row.classList.toggle('dominant', e.key === en.dom);
+  });
+  var verdict = document.getElementById('verdict');
+  verdict.style.display = '';
+  var domLabel = (EMOTIONS.filter(function(e){ return e.key === en.dom; })[0] || {label: en.dom}).label;
+  document.getElementById('v-emotion').innerHTML = domLabel.toUpperCase() + ' <span>' + en.domPct + '%</span>';
+  document.getElementById('v-desc').textContent = (VERDICTS[en.dom] || '') + ' (Loaded from history.)';
+  var gv = document.getElementById('gauge-val');
+  gv.style.strokeDashoffset = String(ARC - (Math.min(en.stress, 100) / 100) * ARC);
+  gv.style.stroke = en.stress < 35 ? '#34d399' : en.stress < 65 ? '#fbbf24' : '#f87171';
+  document.getElementById('gauge-num').textContent = String(en.stress);
+  log('info', 'history entry loaded · ' + en.dom.toUpperCase() + ' ' + en.domPct + '%');
+}
+document.getElementById('hist-clear').addEventListener('click', function(){
+  saveHist([]);
+  renderHist();
+  log('info', 'analysis history cleared');
+});
+renderHist();
 
 /* release mic when leaving */
 window.addEventListener('pagehide', function(){
