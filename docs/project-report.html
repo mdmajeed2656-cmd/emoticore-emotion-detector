@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emoticore — Project Report</title>
+<style>
+@page{
+  size: A4;
+  margin: 18mm 16mm 20mm 16mm;
+}
+:root{
+  --ink:#14181f;
+  --ink-2:#4a5261;
+  --ink-3:#7c8494;
+  --cyan:#0891b2;
+  --violet:#7c3aed;
+  --line:#e2e6ec;
+  --bg-code:#f4f6f9;
+  --mono:'Consolas','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:var(--ink);
+  font-size:10.5pt;
+  line-height:1.55;
+}
+h1,h2,h3{line-height:1.25;}
+h2{
+  font-size:15pt;margin:26pt 0 10pt;
+  padding-bottom:5pt;border-bottom:2px solid var(--line);
+  page-break-after:avoid;
+}
+h2 .no{color:var(--cyan);font-family:var(--mono);font-size:11pt;margin-right:8pt;}
+h3{font-size:11.5pt;margin:14pt 0 6pt;page-break-after:avoid;}
+p{margin:0 0 8pt;}
+ul,ol{margin:0 0 8pt 16pt;}
+li{margin-bottom:3pt;}
+strong{color:var(--ink);}
+code{
+  font-family:var(--mono);font-size:9pt;
+  background:var(--bg-code);border-radius:3px;padding:1px 4px;
+}
+table{
+  width:100%;border-collapse:collapse;margin:8pt 0 12pt;
+  font-size:9.5pt;page-break-inside:avoid;
+}
+th{
+  text-align:left;font-size:8pt;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--ink-3);padding:5pt 8pt;border-bottom:1.5px solid var(--ink);
+}
+td{padding:5pt 8pt;border-bottom:1px solid var(--line);vertical-align:top;}
+td code{white-space:nowrap;}
+.formula{
+  font-family:var(--mono);font-size:9pt;
+  background:var(--bg-code);border-left:3px solid var(--cyan);
+  padding:8pt 12pt;margin:8pt 0 12pt;
+  page-break-inside:avoid;
+}
+.note{
+  border-left:3px solid var(--violet);
+  background:#f7f4fd;
+  padding:8pt 12pt;margin:8pt 0 12pt;
+  font-size:9.5pt;
+  page-break-inside:avoid;
+}
+.cover{
+  padding:40pt 0 24pt;
+  border-bottom:3px solid var(--ink);
+  margin-bottom:20pt;
+}
+.cover .brand{
+  font-family:var(--mono);font-size:9pt;letter-spacing:0.3em;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:14pt;
+}
+.cover h1{font-size:30pt;letter-spacing:-0.01em;margin-bottom:8pt;}
+.cover h1 span{color:var(--cyan);}
+.cover .sub{font-size:12pt;color:var(--ink-2);max-width:60ch;}
+.cover .meta{
+  display:flex;gap:28pt;margin-top:18pt;
+  font-family:var(--mono);font-size:8.5pt;color:var(--ink-3);letter-spacing:0.05em;
+}
+.kv-grid{display:flex;flex-wrap:wrap;gap:6pt 0;margin:8pt 0 12pt;}
+.kv-grid span{
+  font-family:var(--mono);font-size:8.5pt;
+  border:1px solid var(--line);border-radius:3px;
+  padding:3pt 8pt;margin-right:6pt;
+  color:var(--ink-2);
+}
+.footer-note{
+  margin-top:28pt;padding-top:10pt;border-top:2px solid var(--line);
+  font-family:var(--mono);font-size:8pt;color:var(--ink-3);letter-spacing:0.05em;
+}
+.pb{page-break-before:always;}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="brand">Emoticore Systems · Project Documentation</div>
+  <h1>EMOTI<span>CORE</span> — Project Report</h1>
+  <p class="sub">AI-powered behavioral threat detection, running entirely in the browser. Complete record of what was built, the technologies and models used, the algorithms behind each feature, and the decisions that shaped them.</p>
+  <div class="meta">
+    <span>VERSION 1.0</span>
+    <span>JULY 2026</span>
+    <span>9 GIT COMMITS</span>
+    <span>~5,400 LINES</span>
+    <span>4 PAGES + PWA</span>
+  </div>
+</div>
+
+<h2><span class="no">01</span>Executive overview</h2>
+<p><strong>Emoticore</strong> is a product concept for an AI security platform that fuses live camera feeds and speech analysis into a single behavioral threat picture — "Detect intent before it becomes incident." This project implements it as a complete, working website: an enterprise-grade marketing page plus <strong>three real, functioning product surfaces</strong> where the AI genuinely runs.</p>
+<p>Everything is built under four deliberate constraints:</p>
+<ul>
+  <li><strong>No backend.</strong> Every page is a self-contained static HTML file — no server, no database, no accounts.</li>
+  <li><strong>No frameworks, no build step.</strong> Pure HTML5 / CSS3 / vanilla JavaScript. The files open directly in a browser.</li>
+  <li><strong>On-device analysis.</strong> Video and audio never leave the machine. The single exception (optional speech transcription) is opt-in and labeled in the UI.</li>
+  <li><strong>One design system.</strong> A "defense-tech mission control" visual identity shared across all pages.</li>
+</ul>
+
+<h2><span class="no">02</span>What was built — the four pages</h2>
+<table>
+  <tr><th>File</th><th>Role</th><th>Size</th></tr>
+  <tr><td><code>index.html</code></td><td>Enterprise landing page (marketing + simulated console)</td><td>1,405 lines</td></tr>
+  <tr><td><code>demo.html</code></td><td>Live camera demo — real facial emotion detection</td><td>944 lines</td></tr>
+  <tr><td><code>voice.html</code></td><td>Voice emotion analysis — record/upload a clip, get an emotion estimate</td><td>1,158 lines</td></tr>
+  <tr><td><code>console.html</code></td><td>Operations Console — the full product: fusion, sessions, incidents, reports</td><td>1,825 lines</td></tr>
+  <tr><td><code>sw.js</code> · <code>manifest.webmanifest</code> · <code>icon.svg</code></td><td>PWA layer — installable app, offline shell</td><td>75 lines</td></tr>
+</table>
+
+<h3>index.html — Landing page</h3>
+<ul>
+  <li>Animated hero: particle-constellation canvas, glitch-effect brandline, staggered load choreography, animated stat counters (99.2%, &lt;400ms, 140+).</li>
+  <li>Simulated operations console: canvas camera-feed simulation with wandering subject lock, drifting telemetry bars, typing event log with UTC timestamps.</li>
+  <li>Capability rack (Speech / Face / Scoring bays with live canvas visuals), scroll-drawn pipeline section, fictional-client trust marquee, big ops-dashboard mockup with SVG threat gauge, deployments, pull-quote, CTA band, 5-column footer.</li>
+  <li>Scroll-reveal system via IntersectionObserver; fully responsive with a mobile hamburger menu; respects <code>prefers-reduced-motion</code>.</li>
+</ul>
+
+<h3>demo.html — Live camera demo</h3>
+<ul>
+  <li>Real in-browser ML: face detection, 68 facial landmarks, and 7-class expression classification on the user's webcam.</li>
+  <li>Live overlay: corner-bracket subject lock, landmark dots, per-subject labels; <strong>stable subject IDs</strong> via frame-to-frame IoU tracking.</li>
+  <li>Smoothed affect telemetry bars, weighted facial threat index on an SVG gauge, event log, FPS/latency stats, and a 90-second threat sparkline.</li>
+  <li>Full permission flow with distinct error states (denied / no camera / engine load failure) and a localhost hint for <code>file://</code> quirks.</li>
+</ul>
+
+<h3>voice.html — Voice emotion analysis</h3>
+<ul>
+  <li>Record up to 15 s of microphone audio (codec-free PCM capture) or upload an audio file (MP3/WAV/M4A/OGG, first 30 s).</li>
+  <li>On-device prosody engine scores six emotions — Calm, Happy, Surprised, Nervous/Fearful, Angry, Sad — plus a 0–100 vocal stress index.</li>
+  <li>Outputs: dominant-emotion verdict in plain language, measured prosodic features (mean pitch, range, jitter, energy, rate, pauses), waveform envelope, WAV replay of the sample.</li>
+  <li>Last five analyses persist in <code>localStorage</code>; click any history entry to re-view. Rejects samples with under ~2 s of audible speech.</li>
+</ul>
+
+<h3>console.html — Operations Console (flagship)</h3>
+<ul>
+  <li><strong>Fusion pipeline:</strong> camera and voice analyzed simultaneously; facial threat and vocal stress merge into one live index, with transcript keyword hits adding a decaying boost. Mic denied → graceful face-only mode.</li>
+  <li><strong>Session recording:</strong> telemetry sampled at 4 Hz into a live 120-second scrolling timeline chart with threshold bands, three plotted series, a dominant-emotion color strip, and a time grid.</li>
+  <li><strong>Incident engine:</strong> threat held above ELEVATED for 1.5 s opens an incident — video-frame snapshot captured, live card with peak/duration/driver, severity escalation to HIGH, hysteresis close.</li>
+  <li><strong>Session reports:</strong> end-of-session summary (avg/peak threat, % time elevated, affect distribution) with JSON and CSV export — generated locally as Blob downloads.</li>
+  <li><strong>Settings drawer:</strong> face/voice fusion balance, both thresholds, editable threat lexicon, alert-sound toggle — persisted in <code>localStorage</code>.</li>
+  <li><strong>Command palette:</strong> Ctrl+K, filterable, keyboard-navigable — sessions, toggles, exports, navigation.</li>
+</ul>
+
+<h2 class="pb"><span class="no">03</span>Technology stack</h2>
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Notes</th></tr>
+  <tr><td>Languages</td><td>HTML5, CSS3, vanilla JavaScript</td><td>Zero frameworks, zero build tools, zero npm dependencies</td></tr>
+  <tr><td>Face AI</td><td><code>@vladmandic/face-api</code> (TensorFlow.js-based)</td><td>Loaded from jsDelivr CDN on demand (~4 MB engine + model weights, first run only)</td></tr>
+  <tr><td>Audio DSP</td><td>Web Audio API</td><td>AnalyserNode, ScriptProcessorNode, custom autocorrelation pitch detection — all hand-written</td></tr>
+  <tr><td>Transcription</td><td>Web Speech API</td><td>Chrome/Edge only; routes audio via the browser's cloud speech service — strictly opt-in and labeled</td></tr>
+  <tr><td>Graphics</td><td>Canvas 2D + inline SVG</td><td>All visuals generated in code: particle mesh, feed simulation, waveforms, charts, gauges</td></tr>
+  <tr><td>Typography</td><td>Google Fonts</td><td>Sora (display), IBM Plex Sans (body), IBM Plex Mono (telemetry)</td></tr>
+  <tr><td>Storage</td><td><code>localStorage</code> + Blob downloads</td><td>Settings, voice history; JSON/CSV report exports</td></tr>
+  <tr><td>PWA</td><td>Web App Manifest + Service Worker</td><td>Stale-while-revalidate caching; installable; registers only over https/localhost</td></tr>
+  <tr><td>Version control</td><td>Git (local repository)</td><td>9 commits, one per milestone; GitHub connection planned but not yet made</td></tr>
+  <tr><td>Development</td><td>Claude Code (VS Code extension), Fable model</td><td>AI-assisted build; code-level self-review each milestone</td></tr>
+</table>
+
+<h2><span class="no">04</span>AI models &amp; analysis engines</h2>
+
+<h3>4.1 Facial pipeline — neural networks (demo.html, console.html)</h3>
+<table>
+  <tr><th>Model</th><th>Task</th><th>Output</th></tr>
+  <tr><td><code>tinyFaceDetector</code></td><td>Face detection (Tiny-YOLO-style)</td><td>Bounding boxes + confidence; input 416 px, threshold 0.4</td></tr>
+  <tr><td><code>faceLandmark68TinyNet</code></td><td>Facial landmarks</td><td>68 landmark points per face</td></tr>
+  <tr><td><code>faceExpressionNet</code></td><td>Expression classification</td><td>7 classes: neutral, happy, sad, angry, fearful, disgusted, surprised (probabilities)</td></tr>
+</table>
+<p>Models are fetched once from CDN, then run entirely locally at typically 10–25 inference FPS. Emotion values are EMA-smoothed (α = 0.25) before display.</p>
+
+<h3>4.2 Vocal pipeline — signal processing (voice.html, console.html)</h3>
+<ul>
+  <li><strong>Pitch (F0):</strong> autocorrelation over a ~8 kHz decimated copy of the signal, 60–400 Hz search range, confidence-gated. Decimation cuts the ACF cost ~40× so a 15 s clip analyzes in well under a second.</li>
+  <li><strong>Loudness:</strong> per-frame RMS → dB; <strong>jitter:</strong> frame-to-frame F0 delta / mean; <strong>rate:</strong> energy-peak (syllable-proxy) count per second; <strong>pauses:</strong> sub-threshold frame ratio; <strong>contour:</strong> linear-fit F0 slope.</li>
+  <li><strong>Live vocal stress (console):</strong> a per-session baseline is calibrated from the speaker's first ~30 voiced frames (median F0); stress then measures deviation — pitch elevation + jitter + loudness spikes vs. that personal baseline.</li>
+  <li><strong>Clip emotion estimate (voice page):</strong> extracted features are normalized and combined through per-emotion weighted scoring functions, floored and normalized to percentages across the six categories.</li>
+</ul>
+
+<h3>4.3 Threat fusion (console.html)</h3>
+<div class="formula">
+facial_raw = 100 × min(1, angry×1.00 + fearful×0.85 + disgusted×0.50 + sad×0.20 + surprised×0.25)<br>
+fused = (faceW × facial_raw + voxW × vocal_stress) / (weights present) + lexicon_boost<br>
+threat_index ← threat_index + (fused − threat_index) × 0.12&nbsp;&nbsp;// EMA smoothing<br>
+<br>
+defaults: faceW = 0.65, voxW = 0.35 · lexicon_boost ≤ 45, decays ×0.988/frame<br>
+levels: LOW &lt; 35 ≤ ELEVATED &lt; 65 ≤ HIGH (all user-tunable)
+</div>
+
+<h3>4.4 Incident engine (console.html)</h3>
+<div class="formula">
+open:&nbsp;&nbsp;threat ≥ ELEVATED sustained ≥ 1.5 s → capture snapshot, open card<br>
+close:&nbsp;threat &lt; ELEVATED − 5 sustained ≥ 2.0 s&nbsp;&nbsp;// hysteresis prevents flicker<br>
+escalate: peak ≥ HIGH → severity HIGH
+</div>
+
+<h3>4.5 Subject tracking (demo.html)</h3>
+<p>Greedy intersection-over-union matching of face boxes between consecutive frames (IoU &gt; 0.2, best-pair-first); unmatched detections get new IDs; tracks expire after 1.2 s unseen. Result: <code>SUBJ_01</code>/<code>SUBJ_02</code> labels stay attached to the same person.</p>
+
+<h2 class="pb"><span class="no">05</span>Design system</h2>
+<p>Direction: <strong>"defense-tech mission control"</strong> — instrument panels, hairline borders, monospace telemetry; restrained glow rather than neon-everything. Single dark theme, committed deliberately.</p>
+<h3>Color tokens</h3>
+<div class="kv-grid">
+  <span>bg #05070d</span><span>panel #0b101c → #0d1424</span><span>ink #e8edf6</span><span>cyan #38e1ff</span><span>cyan-hot #00f5ff</span><span>violet #8b5cf6</span><span>ok #34d399</span><span>warn #fbbf24</span><span>crit #f87171</span>
+</div>
+<h3>Typography</h3>
+<ul>
+  <li><strong>Sora</strong> (600–800) — display headlines; geometric, machine-vision feel.</li>
+  <li><strong>IBM Plex Sans</strong> (400–600) — body; enterprise-infrastructure DNA.</li>
+  <li><strong>IBM Plex Mono</strong> — all telemetry, timestamps, labels; <code>tabular-nums</code> everywhere digits align.</li>
+</ul>
+<h3>Signature components (shared across pages)</h3>
+<p>The 270° SVG threat gauge (r = 42, dasharray 198/264, rotated 135°) · telemetry bar rows · timestamped event log · state pills · toggle chips · console/dash panel shells · corner-bracket subject lock. Animation is orchestrated (hero load sequence, scroll reveals) and <code>prefers-reduced-motion</code> is respected globally.</p>
+
+<h2><span class="no">06</span>Privacy architecture</h2>
+<ul>
+  <li>All video inference and all audio DSP run <strong>on-device</strong>; no frame or sample is ever transmitted. Every page states this in the UI.</li>
+  <li>The one exception is <strong>transcription</strong>: the Web Speech API routes audio through the browser vendor's speech service. It is off by default, opt-in per session, and labeled as cloud-routed at the moment of enabling.</li>
+  <li>Cameras and microphones are released on stop and on page exit (<code>pagehide</code>).</li>
+  <li>Exports (JSON/CSV) are generated locally as Blob downloads — no upload endpoint exists.</li>
+</ul>
+
+<h2><span class="no">07</span>Development record</h2>
+<table>
+  <tr><th>Commit</th><th>Milestone</th></tr>
+  <tr><td><code>7838ae7</code></td><td>Initial landing page (single-file futuristic design, simulated console)</td></tr>
+  <tr><td><code>cb236f1</code></td><td>Live webcam emotion demo — real ML in the browser</td></tr>
+  <tr><td><code>e75f95c</code></td><td>Microphone/speech module fused into the camera demo</td></tr>
+  <tr><td><code>4b3d331</code></td><td>Voice analysis separated into standalone page; Request-demo CTAs replaced with live demos</td></tr>
+  <tr><td><code>72e2678</code></td><td>Operations Console — sessions, timeline, incidents, exports, settings, palette</td></tr>
+  <tr><td><code>cbf439e</code></td><td>Site-wide polish — favicon, meta/OG tags, console integration</td></tr>
+  <tr><td><code>6aaa726</code></td><td>Repository hygiene (untrack local tool settings)</td></tr>
+  <tr><td><code>7fd69d8</code></td><td>Threat sparkline, stable subject IDs, voice analysis history</td></tr>
+  <tr><td><code>87dd58d</code></td><td>PWA — manifest, icon, service worker</td></tr>
+</table>
+<p>Each feature milestone included a code-level self-review pass before commit. Bugs caught this way before they ever reached the browser include: an autocorrelation cost explosion on long clips (~10⁹ operations, fixed by 8 kHz decimation), invisible telemetry bars (CSS dimensions on inline elements), a visible seam in the marquee loop, ring animations expanding off-center, and a stuck keyword boost when the mic was muted.</p>
+
+<h2><span class="no">08</span>Honest limitations</h2>
+<div class="note">
+<strong>Demo-grade accuracy.</strong> The face models are open, lightweight networks — excellent for a pitch, not the "99.2%" of the marketing copy. The vocal stress and voice-emotion scores are transparent DSP heuristics (prosody distinguishes arousal well, valence roughly), labeled "not a clinical measure" in the UI. A production system would need serious models, validation datasets, and a legal/compliance review — emotion recognition is regulated in some jurisdictions (e.g. the EU AI Act).
+</div>
+<ul>
+  <li>Session data lives in memory; closing the tab discards an unexported session.</li>
+  <li>Transcription requires Chrome/Edge and an internet connection; Firefox shows "N/A".</li>
+  <li>Camera/mic on <code>file://</code> work in most Chromium browsers, but localhost/https (VS Code Live Server) is the reliable path — and required for the PWA/service worker.</li>
+  <li>First run needs internet for the ~4 MB engine + models (cached afterward).</li>
+</ul>
+
+<h2><span class="no">09</span>Roadmap candidates</h2>
+<ol>
+  <li><strong>Deploy to GitHub Pages</strong> — real shareable https URL; camera, mic, and PWA install all work properly. Blocked only on GitHub sign-in.</li>
+  <li><strong>Session persistence</strong> — auto-save sessions to IndexedDB; session browser/compare view.</li>
+  <li><strong>Neural voice emotion model</strong> — upgrade the prosody heuristic when a browser-ready speech-emotion model (e.g. a wav2vec2 ONNX conversion for transformers.js) is available.</li>
+  <li><strong>Multi-camera console</strong> — several streams per console with a combined incident rail.</li>
+  <li><strong>Docs page</strong> — public-facing architecture/API documentation in the same design system.</li>
+</ol>
+
+<div class="footer-note">
+EMOTICORE PROJECT REPORT · V1.0 · JULY 2026 · GENERATED FROM THE LIVE CODEBASE · ALL ANALYSIS ON-DEVICE
+</div>
+
+</body>
+</html>
