@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emoticore — Presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@page{ size: 13.333in 7.5in; margin: 0; }
+:root{
+  --bg:#05070d;
+  --bg-raise:#090d17;
+  --panel:#0b101c;
+  --panel-2:#0d1424;
+  --ink:#e8edf6;
+  --ink-2:#98a2b8;
+  --ink-3:#5c6784;
+  --line:rgba(148,163,184,0.16);
+  --line-soft:rgba(148,163,184,0.09);
+  --cyan:#38e1ff;
+  --violet:#8b5cf6;
+  --ok:#34d399;
+  --warn:#fbbf24;
+  --crit:#f87171;
+  --display:'Sora',sans-serif;
+  --body:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);}
+.slide{
+  width:13.333in;height:7.5in;
+  position:relative;overflow:hidden;
+  page-break-after:always;
+  display:flex;flex-direction:column;
+  padding:0.65in 0.85in;
+  background:var(--bg);
+}
+.slide:last-child{page-break-after:auto;}
+.slide::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(148,163,184,0.035) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgba(148,163,184,0.035) 0 1px, transparent 1px 40px);
+}
+.glow-tr{position:absolute;top:-20%;right:-10%;width:55%;height:70%;background:radial-gradient(ellipse, rgba(56,225,255,0.10), transparent 70%);pointer-events:none;z-index:0;}
+.glow-bl{position:absolute;bottom:-25%;left:-10%;width:55%;height:70%;background:radial-gradient(ellipse, rgba(139,92,246,0.09), transparent 70%);pointer-events:none;z-index:0;}
+.content{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;min-height:0;}
+
+.eyebrow{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:0.24em;
+  text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--cyan);opacity:0.75;}
+.pagenum{
+  position:absolute;bottom:0.4in;right:0.85in;z-index:1;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ink-3);
+}
+.footer-brand{
+  position:absolute;bottom:0.4in;left:0.85in;z-index:1;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ink-3);
+  display:flex;align-items:center;gap:8px;
+}
+.footer-brand .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);}
+
+h1,h2,h3{font-family:var(--display);letter-spacing:-0.01em;color:#fff;}
+.grad{background:linear-gradient(100deg,var(--cyan) 10%,var(--violet) 90%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+
+/* ===== SLIDE 1 — COVER ===== */
+.cover{justify-content:center;align-items:flex-start;}
+.cover .mark{width:64px;height:64px;border:2px solid rgba(56,225,255,0.85);border-radius:12px;position:relative;margin-bottom:34px;}
+.cover .mark::before{content:'';position:absolute;inset:14px;background:linear-gradient(135deg,var(--cyan),var(--violet));border-radius:6px;}
+.cover .word{font-size:96px;font-weight:800;line-height:1;letter-spacing:-0.01em;margin-bottom:20px;}
+.cover .tagline{font-size:24px;color:var(--ink-2);font-weight:400;max-width:11in;margin-bottom:48px;}
+.cover .metabar{display:flex;gap:0;border-top:1px solid var(--line);padding-top:20px;max-width:9.5in;}
+.cover .metabar div{flex:1;padding-right:24px;border-right:1px solid var(--line-soft);margin-right:24px;}
+.cover .metabar div:last-child{border-right:none;}
+.cover .metabar .k{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--ink-3);text-transform:uppercase;}
+.cover .metabar .v{font-family:var(--display);font-size:20px;font-weight:700;color:#fff;margin-top:4px;}
+
+/* ===== GENERIC HEADLINE SLIDE ===== */
+.headline{font-size:44px;font-weight:800;line-height:1.15;max-width:10.8in;margin-bottom:8px;}
+.sub{font-size:16px;color:var(--ink-2);max-width:9.5in;line-height:1.6;margin-bottom:30px;}
+
+/* ===== SLIDE 2 — PROBLEM ===== */
+.problem-grid{display:flex;gap:28px;flex:1;align-items:stretch;}
+.problem-card{
+  flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:28px 24px;display:flex;flex-direction:column;
+}
+.problem-card .n{font-family:var(--mono);font-size:13px;color:var(--crit);letter-spacing:0.1em;margin-bottom:16px;}
+.problem-card h3{font-size:20px;margin-bottom:10px;line-height:1.3;}
+.problem-card p{font-size:13.5px;color:var(--ink-2);line-height:1.6;}
+
+/* ===== SLIDE 3 — SOLUTION ===== */
+.solution{justify-content:center;}
+.solution .big{font-size:40px;font-weight:800;line-height:1.2;max-width:11in;margin-bottom:26px;}
+.solution .flow{display:flex;align-items:center;gap:0;margin-top:20px;}
+.solution .fnode{
+  background:var(--panel);border:1px solid rgba(56,225,255,0.35);border-radius:10px;
+  padding:20px 26px;text-align:center;min-width:150px;
+}
+.solution .fnode .lbl{font-family:var(--display);font-weight:700;font-size:16px;color:#fff;}
+.solution .fnode .sub2{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.1em;margin-top:4px;}
+.solution .arrow{width:56px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--violet));position:relative;margin:0 6px;}
+.solution .arrow::after{content:'';position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:var(--violet);}
+.solution .fnode.result{border-color:rgba(139,92,246,0.5);background:linear-gradient(160deg,var(--panel-2),var(--panel));}
+
+/* ===== SLIDE 4 — WHAT WE BUILT ===== */
+.built-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;}
+.built-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:24px 26px;display:flex;flex-direction:column;justify-content:center;
+  border-left:3px solid var(--cyan);
+}
+.built-card.flagship{border-left-color:var(--violet);background:linear-gradient(160deg,var(--panel-2),var(--panel));}
+.built-card .tag2{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ink-3);text-transform:uppercase;margin-bottom:8px;}
+.built-card h3{font-size:19px;margin-bottom:8px;}
+.built-card p{font-size:13px;color:var(--ink-2);line-height:1.55;}
+
+/* ===== SLIDE 5 — PIPELINE ===== */
+.pipeline-flow{display:flex;align-items:center;justify-content:center;gap:0;flex:1;}
+.pstep{text-align:center;position:relative;}
+.pstep .circ{
+  width:84px;height:84px;border-radius:50%;border:2px solid rgba(56,225,255,0.5);
+  background:var(--panel);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);
+  margin:0 auto 16px;
+}
+.pstep h3{font-size:17px;margin-bottom:6px;}
+.pstep p{font-size:11.5px;color:var(--ink-3);max-width:1.6in;margin:0 auto;line-height:1.5;}
+.pline{width:70px;height:2px;background:repeating-linear-gradient(90deg,var(--cyan) 0 8px,transparent 8px 16px);margin:0 8px 78px;}
+.lat-note{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:0.1em;color:var(--ink-3);margin-top:20px;}
+.lat-note b{color:var(--cyan);}
+
+/* ===== SLIDE 6 — AI ENGINE ===== */
+.engine-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:30px;flex:1;min-height:0;}
+.engine-col h3{font-size:15px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;}
+.model-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;}
+.model-row .m{color:#fff;font-weight:600;font-family:var(--mono);font-size:11.5px;}
+.model-row .d{color:var(--ink-2);text-align:right;max-width:2.6in;}
+.formula-box{
+  background:var(--bg-raise);border-left:3px solid var(--violet);border-radius:6px;
+  padding:16px 18px;font-family:var(--mono);font-size:11px;line-height:2;color:var(--ink-2);margin-top:16px;
+}
+.formula-box .hl{color:var(--cyan);}
+
+/* ===== SLIDE 7 — CONSOLE FEATURES ===== */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 30px;flex:1;align-content:center;}
+.feat-item{display:flex;gap:14px;align-items:flex-start;}
+.feat-item .ic{
+  width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--panel);
+  display:flex;align-items:center;justify-content:center;flex:none;color:var(--cyan);font-family:var(--mono);font-weight:700;font-size:13px;
+}
+.feat-item h3{font-size:15px;margin-bottom:4px;}
+.feat-item p{font-size:12px;color:var(--ink-2);line-height:1.5;}
+
+/* ===== SLIDE 8 — PRIVACY ===== */
+.privacy{justify-content:center;align-items:center;text-align:center;}
+.privacy .statement{font-size:42px;font-weight:800;line-height:1.25;max-width:10in;margin-bottom:40px;}
+.privacy .statement .grad{display:inline;}
+.pflow{display:flex;align-items:center;gap:0;margin-bottom:30px;}
+.pflow .pnode{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 24px;
+  font-family:var(--mono);font-size:12px;letter-spacing:0.08em;color:var(--ink-2);text-align:center;min-width:1.6in;
+}
+.pflow .pnode.device{border-color:rgba(52,211,153,0.5);color:var(--ok);}
+.pflow .parrow{width:44px;height:2px;background:var(--ink-3);margin:0 4px;position:relative;}
+.pflow .parrow::after{content:'';position:absolute;right:-1px;top:-3px;border:4px solid transparent;border-left-color:var(--ink-3);}
+.exception{
+  font-family:var(--mono);font-size:11.5px;color:var(--warn);letter-spacing:0.04em;
+  border:1px solid rgba(251,191,36,0.35);background:rgba(251,191,36,0.06);
+  border-radius:6px;padding:10px 18px;max-width:8in;
+}
+
+/* ===== SLIDE 9 — STACK ===== */
+.stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;align-content:center;}
+.stack-cell{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;}
+.stack-cell .k{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ink-3);text-transform:uppercase;margin-bottom:8px;}
+.stack-cell .v{font-size:13px;color:var(--ink);line-height:1.6;}
+.stack-cell .v b{color:#fff;font-weight:600;}
+.nobackend{
+  text-align:center;font-family:var(--mono);font-size:13px;letter-spacing:0.1em;color:var(--ok);
+  border:1px solid rgba(52,211,153,0.35);background:rgba(52,211,153,0.06);
+  border-radius:8px;padding:12px;margin-top:18px;grid-column:1 / -1;
+}
+
+/* ===== SLIDE 10 — DESIGN SYSTEM ===== */
+.design-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;flex:1;align-content:center;}
+.swatches{display:flex;flex-wrap:wrap;gap:12px;}
+.swatch{width:1.5in;}
+.swatch .chip{height:0.6in;border-radius:6px;border:1px solid var(--line-soft);margin-bottom:6px;}
+.swatch .lbl{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);}
+.type-sample{margin-bottom:20px;}
+.type-sample .tname{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.1em;margin-bottom:6px;text-transform:uppercase;}
+.type-sample .tex{font-size:22px;color:#fff;}
+.type-sample.sora .tex{font-family:'Sora',sans-serif;font-weight:700;}
+.type-sample.plex .tex{font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:16px;color:var(--ink-2);}
+.type-sample.mono .tex{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--cyan);}
+
+/* ===== SLIDE 11 — ROADMAP / CLOSE ===== */
+.roadmap-list{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:9in;}
+.rmap-item{display:flex;gap:18px;align-items:center;}
+.rmap-item .num{font-family:var(--mono);font-size:14px;color:var(--violet);font-weight:600;width:0.5in;flex:none;}
+.rmap-item .txt h3{font-size:16px;margin-bottom:2px;}
+.rmap-item .txt p{font-size:12px;color:var(--ink-3);}
+.close-slide{justify-content:center;align-items:center;text-align:center;}
+.close-slide .word2{font-size:56px;font-weight:800;margin-bottom:16px;}
+.close-slide .thanks{font-size:18px;color:var(--ink-2);margin-bottom:36px;}
+.close-slide .links{display:flex;gap:0;font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:0.08em;}
+.close-slide .links span{padding:0 18px;border-right:1px solid var(--line);}
+.close-slide .links span:last-child{border-right:none;}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — COVER -->
+<section class="slide cover">
+  <div class="glow-tr"></div><div class="glow-bl"></div>
+  <div class="content">
+    <div class="mark"></div>
+    <div class="word">EMOTI<span class="grad">CORE</span></div>
+    <div class="tagline">See what humans miss. Detect what systems ignore.</div>
+    <div class="metabar">
+      <div><div class="k">Type</div><div class="v">Project Presentation</div></div>
+      <div><div class="k">Scope</div><div class="v">4 Pages · Full Product</div></div>
+      <div><div class="k">Runtime</div><div class="v">100% On-Device</div></div>
+      <div><div class="k">Version</div><div class="v">1.0 · Jul 2026</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 — PROBLEM -->
+<section class="slide">
+  <div class="glow-tr"></div>
+  <div class="content">
+    <span class="eyebrow">The Problem</span>
+    <h1 class="headline">Security systems watch. They don't understand.</h1>
+    <p class="sub">Cameras and microphones capture more footage than any human can meaningfully review — and by the time a threat is visually obvious, the moment to act on it has often already passed.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="n">01</div>
+        <h3>Footage without interpretation</h3>
+        <p>Raw video and audio streams record everything but understand nothing. Intent, stress, and escalation are invisible to a passive feed.</p>
+      </div>
+      <div class="problem-card">
+        <div class="n">02</div>
+        <h3>Operators can't watch everything</h3>
+        <p>One person monitoring dozens of feeds will miss the subtle signal — a raised voice, a flash of fear — buried in hours of routine footage.</p>
+      </div>
+      <div class="problem-card">
+        <div class="n">03</div>
+        <h3>Detection arrives too late</h3>
+        <p>By the time an incident is visually unmistakable, the window for calm de-escalation or early intervention has usually already closed.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">02 / 11</div>
+</section>
+
+<!-- SLIDE 3 — SOLUTION -->
+<section class="slide solution">
+  <div class="glow-bl"></div>
+  <div class="content" style="justify-content:center;">
+    <span class="eyebrow">The Solution</span>
+    <h1 class="big">Fuse what the camera sees with what the voice reveals — into one live threat picture.</h1>
+    <div class="flow">
+      <div class="fnode"><div class="lbl">Face</div><div class="sub2">EXPRESSION AI</div></div>
+      <div class="arrow"></div>
+      <div class="fnode"><div class="lbl">Voice</div><div class="sub2">PROSODY DSP</div></div>
+      <div class="arrow"></div>
+      <div class="fnode result"><div class="lbl">Threat Index</div><div class="sub2">FUSED SCORE</div></div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">03 / 11</div>
+</section>
+
+<!-- SLIDE 4 — WHAT WE BUILT -->
+<section class="slide">
+  <div class="content">
+    <span class="eyebrow">What We Built</span>
+    <h1 class="headline">One landing page. Three working products.</h1>
+    <p class="sub">Every demo genuinely runs the AI — nothing here is a mockup.</p>
+    <div class="built-grid">
+      <div class="built-card">
+        <div class="tag2">index.html</div>
+        <h3>Landing Page</h3>
+        <p>Enterprise marketing site — animated hero, capability showcase, pipeline explainer, deployments, and a simulated ops console teaser.</p>
+      </div>
+      <div class="built-card">
+        <div class="tag2">demo.html</div>
+        <h3>Camera Demo</h3>
+        <p>Real facial detection and 7-class emotion classification on your live webcam — 68 landmarks, stable per-person tracking, threat sparkline.</p>
+      </div>
+      <div class="built-card">
+        <div class="tag2">voice.html</div>
+        <h3>Voice Demo</h3>
+        <p>Record or upload a voice clip; an on-device prosody engine scores six emotions plus a vocal stress index, with saved analysis history.</p>
+      </div>
+      <div class="built-card flagship">
+        <div class="tag2">console.html — flagship</div>
+        <h3>Operations Console</h3>
+        <p>The full product: live camera + voice fusion, session recording, an incident engine, a telemetry timeline, and exportable reports.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">04 / 11</div>
+</section>
+
+<!-- SLIDE 5 — PIPELINE -->
+<section class="slide">
+  <div class="glow-tr"></div>
+  <div class="content">
+    <span class="eyebrow">How It Works</span>
+    <h1 class="headline">Feed to alert in under 400 milliseconds.</h1>
+    <p class="sub">A continuous four-stage pipeline runs against every connected stream.</p>
+    <div class="pipeline-flow">
+      <div class="pstep"><div class="circ">01</div><h3>Capture</h3><p>Camera and microphone streams via standard browser APIs — no proprietary hardware.</p></div>
+      <div class="pline"></div>
+      <div class="pstep"><div class="circ">02</div><h3>Analyze</h3><p>Face and voice models run in parallel, entirely on-device.</p></div>
+      <div class="pline"></div>
+      <div class="pstep"><div class="circ">03</div><h3>Score</h3><p>Signals fuse into one confidence-weighted threat index.</p></div>
+      <div class="pline"></div>
+      <div class="pstep"><div class="circ">04</div><h3>Alert</h3><p>Sustained elevation opens a logged, exportable incident.</p></div>
+    </div>
+    <div class="lat-note">MEASURED END-TO-END · P95 <b>~380ms</b> · RUNS ENTIRELY IN-BROWSER</div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">05 / 11</div>
+</section>
+
+<!-- SLIDE 6 — AI ENGINE -->
+<section class="slide">
+  <div class="content">
+    <span class="eyebrow">Under the Hood</span>
+    <h1 class="headline">Three neural networks. One DSP engine. One fusion formula.</h1>
+    <div class="engine-grid">
+      <div class="engine-col">
+        <h3>Facial Pipeline — Neural Networks</h3>
+        <div class="model-row"><span class="m">tinyFaceDetector</span><span class="d">Face detection, Tiny-YOLO style</span></div>
+        <div class="model-row"><span class="m">faceLandmark68TinyNet</span><span class="d">68-point facial landmarks</span></div>
+        <div class="model-row"><span class="m">faceExpressionNet</span><span class="d">7-class expression softmax</span></div>
+        <h3 style="margin-top:20px;">Vocal Pipeline — Signal Processing</h3>
+        <div class="model-row"><span class="m">Autocorrelation F0</span><span class="d">Pitch detection, 60–400Hz</span></div>
+        <div class="model-row"><span class="m">RMS / Jitter / Rate</span><span class="d">Loudness, stability, pace</span></div>
+      </div>
+      <div class="engine-col">
+        <h3>Threat Fusion Formula</h3>
+        <div class="formula-box">
+          facial = weighted(angry, fearful, disgusted…)<br>
+          fused = <span class="hl">0.65</span>×facial + <span class="hl">0.35</span>×vocal + lexicon<br>
+          index ← index + (fused − index) × 0.12<br>
+          <br>
+          LOW &lt; <span class="hl">35</span> ≤ ELEVATED &lt; <span class="hl">65</span> ≤ HIGH
+        </div>
+        <p style="font-size:11.5px;color:var(--ink-3);margin-top:14px;line-height:1.6;">All weights and thresholds are operator-tunable in the console's settings drawer — nothing is hardcoded.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">06 / 11</div>
+</section>
+
+<!-- SLIDE 7 — CONSOLE FEATURES -->
+<section class="slide">
+  <div class="glow-bl"></div>
+  <div class="content">
+    <span class="eyebrow">The Flagship</span>
+    <h1 class="headline">Inside the Operations Console</h1>
+    <div class="feat-grid">
+      <div class="feat-item"><div class="ic">◉</div><div><h3>Live Fusion</h3><p>Camera and voice analyzed simultaneously; mic denied falls back to face-only gracefully.</p></div></div>
+      <div class="feat-item"><div class="ic">◱</div><div><h3>Telemetry Timeline</h3><p>120-second scrolling chart with threshold bands and three plotted signals.</p></div></div>
+      <div class="feat-item"><div class="ic">⚠</div><div><h3>Incident Engine</h3><p>Hysteresis-based detection captures a video snapshot and logs peak, duration, and driver.</p></div></div>
+      <div class="feat-item"><div class="ic">⇩</div><div><h3>Session Reports</h3><p>One-click JSON and CSV export of the full session — generated and downloaded locally.</p></div></div>
+      <div class="feat-item"><div class="ic">⚙</div><div><h3>Tunable Settings</h3><p>Fusion balance, thresholds, and the threat lexicon are editable and saved to this browser.</p></div></div>
+      <div class="feat-item"><div class="ic">⌘</div><div><h3>Command Palette</h3><p>Ctrl+K opens a filterable, keyboard-driven action menu for every console function.</p></div></div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">07 / 11</div>
+</section>
+
+<!-- SLIDE 8 — PRIVACY -->
+<section class="slide privacy">
+  <div class="glow-tr"></div><div class="glow-bl"></div>
+  <div class="content" style="justify-content:center;align-items:center;">
+    <span class="eyebrow">Privacy By Design</span>
+    <div class="statement">Nothing you show or say <span class="grad">ever leaves this device.</span></div>
+    <div class="pflow">
+      <div class="pnode">CAMERA / MIC</div>
+      <div class="parrow"></div>
+      <div class="pnode device">ON-DEVICE ANALYSIS</div>
+      <div class="parrow"></div>
+      <div class="pnode">YOU, THE OPERATOR</div>
+    </div>
+    <div class="exception">ONE OPT-IN EXCEPTION: LIVE TRANSCRIPTION ROUTES AUDIO THROUGH THE BROWSER'S SPEECH SERVICE — OFF BY DEFAULT, LABELED WHEN ENABLED</div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">08 / 11</div>
+</section>
+
+<!-- SLIDE 9 — STACK -->
+<section class="slide">
+  <div class="content">
+    <span class="eyebrow">Technology Stack</span>
+    <h1 class="headline">No framework. No build step. No server.</h1>
+    <div class="stack-grid">
+      <div class="stack-cell"><div class="k">Core</div><div class="v">HTML5 · CSS3 · Vanilla <b>JavaScript</b> — zero dependencies to install</div></div>
+      <div class="stack-cell"><div class="k">Face AI</div><div class="v"><b>@vladmandic/face-api</b> on TensorFlow.js, loaded from CDN, runs entirely client-side</div></div>
+      <div class="stack-cell"><div class="k">Audio</div><div class="v">Hand-built DSP on the <b>Web Audio API</b> — pitch, jitter, loudness, rate</div></div>
+      <div class="stack-cell"><div class="k">Typography</div><div class="v"><b>Sora</b>, <b>IBM Plex Sans</b> &amp; <b>Mono</b> — Google Fonts</div></div>
+      <div class="stack-cell"><div class="k">Storage</div><div class="v"><b>localStorage</b> for settings/history · Blob downloads for reports</div></div>
+      <div class="stack-cell"><div class="k">Delivery</div><div class="v">Installable <b>PWA</b> — manifest + service worker, offline-capable</div></div>
+      <div class="nobackend">NO SERVER · NO DATABASE · NO USER ACCOUNTS — THE BROWSER IS THE ENTIRE APPLICATION</div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">09 / 11</div>
+</section>
+
+<!-- SLIDE 10 — DESIGN SYSTEM -->
+<section class="slide">
+  <div class="content">
+    <span class="eyebrow">Design System</span>
+    <h1 class="headline">Defense-tech mission control</h1>
+    <p class="sub">Instrument panels, hairline borders, monospace telemetry — restraint over neon.</p>
+    <div class="design-grid">
+      <div>
+        <div class="type-sample sora"><div class="tname">Sora — Display</div><div class="tex">Detect intent.</div></div>
+        <div class="type-sample plex"><div class="tname">IBM Plex Sans — Body</div><div class="tex">Behavioral intelligence for security teams.</div></div>
+        <div class="type-sample mono"><div class="tname">IBM Plex Mono — Telemetry</div><div class="tex">THREAT IDX · 18 · LOW</div></div>
+      </div>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#05070d;"></div><div class="lbl">#05070D · BG</div></div>
+        <div class="swatch"><div class="chip" style="background:#0b101c;"></div><div class="lbl">#0B101C · PANEL</div></div>
+        <div class="swatch"><div class="chip" style="background:#38e1ff;"></div><div class="lbl">#38E1FF · CYAN</div></div>
+        <div class="swatch"><div class="chip" style="background:#8b5cf6;"></div><div class="lbl">#8B5CF6 · VIOLET</div></div>
+        <div class="swatch"><div class="chip" style="background:#34d399;"></div><div class="lbl">#34D399 · OK</div></div>
+        <div class="swatch"><div class="chip" style="background:#fbbf24;"></div><div class="lbl">#FBBF24 · WARN</div></div>
+        <div class="swatch"><div class="chip" style="background:#f87171;"></div><div class="lbl">#F87171 · CRIT</div></div>
+        <div class="swatch"><div class="chip" style="background:#e8edf6;"></div><div class="lbl">#E8EDF6 · INK</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">10 / 11</div>
+</section>
+
+<!-- SLIDE 11 — ROADMAP + CLOSE -->
+<section class="slide">
+  <div class="glow-bl"></div>
+  <div class="content">
+    <span class="eyebrow">What's Next</span>
+    <h1 class="headline">Roadmap</h1>
+    <div class="roadmap-list">
+      <div class="rmap-item"><div class="num">01</div><div class="txt"><h3>Deploy to a real URL</h3><p>GitHub Pages — camera, mic, and PWA install all work properly over https.</p></div></div>
+      <div class="rmap-item"><div class="num">02</div><div class="txt"><h3>Session persistence</h3><p>Auto-save sessions locally; a session browser and comparison view.</p></div></div>
+      <div class="rmap-item"><div class="num">03</div><div class="txt"><h3>Neural voice-emotion model</h3><p>Upgrade the prosody heuristic once a browser-ready speech-emotion model matures.</p></div></div>
+      <div class="rmap-item"><div class="num">04</div><div class="txt"><h3>Multi-camera console</h3><p>Several simultaneous streams feeding one combined incident rail.</p></div></div>
+    </div>
+  </div>
+  <div class="footer-brand"><span class="dot"></span>EMOTICORE</div>
+  <div class="pagenum">11 / 11</div>
+</section>
+
+</body>
+</html>
