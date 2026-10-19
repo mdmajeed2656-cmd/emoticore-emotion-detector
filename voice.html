@@ -233,7 +233,12 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
   letter-spacing:0.02em;
 }
 .verdict .v-emotion span{color:var(--cyan);}
+.verdict .v-conf{
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.08em;
+  color:var(--cyan);margin-top:8px;
+}
 .verdict .v-desc{font-size:0.78rem;color:var(--ink-2);margin-top:6px;line-height:1.5;}
+.score-note{font-size:0.72rem;color:var(--ink-3);line-height:1.45;margin:-6px 0 12px;}
 
 /* stress + features */
 .stress-row{
@@ -348,7 +353,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
     <div class="page-head">
       <span class="tag">Live demonstration — VOX</span>
       <h1>Voice emotion analysis — record and decode.</h1>
-      <p class="sub">Record a short voice sample (or upload an audio file) and Emoticore's prosody engine estimates the speaker's emotional state — calm, happy, surprised, nervous, angry, or sad — from pitch, energy, pacing, and rhythm. Everything is computed on this device.</p>
+      <p class="sub">Record a short voice sample (or upload an audio file). A hand-written formula scores calm, happy, surprised, nervous, angry, and sad from pitch, energy, pacing, and rhythm. Each score stands on its own. Confidence is shown separately. Everything is computed on this device.</p>
       <span class="privacy-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
         AUDIO ANALYZED ON-DEVICE — NOTHING IS UPLOADED
@@ -389,7 +394,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3M9 21h6"/></svg>
             </div>
             <h2 id="gate-title">Record a voice sample</h2>
-            <p id="gate-copy">Speak naturally for a few seconds — read a sentence, describe your day. The prosody engine will estimate the emotional state of the voice. Nothing is uploaded.</p>
+            <p id="gate-copy">Speak naturally for a few seconds — read a sentence, describe your day. A heuristic will score the voice. The result is not a probability, and nothing is uploaded.</p>
             <div class="gate-status" id="gate-status"></div>
             <div class="row">
               <button class="btn btn-primary" id="rec-btn">● Start recording</button>
@@ -400,12 +405,14 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
         </div>
 
         <div class="side">
-          <h4>Emotion estimate — prosody engine</h4>
+          <h4>Heuristic scores — not probabilities</h4>
+          <p class="score-note" id="score-note">Each bar is its own 0–100 evidence score. The bars do not add up to 100%. Confidence is separate, and a loud bar can still be a weak read.</p>
           <div id="emotion-rows"></div>
 
           <div class="verdict" id="verdict" style="display:none">
-            <div class="v-label">Dominant read</div>
+            <div class="v-label">Strongest heuristic</div>
             <div class="v-emotion" id="v-emotion">—</div>
+            <div class="v-conf" id="v-conf">EVIDENCE — · CONFIDENCE —</div>
             <div class="v-desc" id="v-desc"></div>
           </div>
 
@@ -420,7 +427,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
                 <span class="g-cap">Stress idx</span>
               </div>
             </div>
-            <p class="stress-note">Composite of <b>pitch jitter</b>, <b>pausing</b>, <b>energy dynamics</b> and <b>pitch range</b> across the sample.</p>
+            <p class="stress-note">Heuristic composite of <b>pitch jitter</b>, <b>pausing</b>, <b>energy dynamics</b> and <b>pitch range</b>. Not a clinical measure, and not the confidence figure above.</p>
           </div>
 
           <div class="features">
@@ -464,7 +471,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 
 <footer class="mini-footer">
   <div class="wrap">
-    <span>© 2026 EMOTICORE SYSTEMS, INC.</span>
+    <span>© 2026 EMOTICORE · PERSONAL DEMO</span>
     <span>DEMO BUILD · PROSODY ESTIMATE — NOT A CLINICAL MEASURE · <a href="demo.html" style="color:var(--cyan)">CAMERA DEMO →</a> · <a href="console.html" style="color:var(--cyan)">FULL CONSOLE →</a></span>
   </div>
 </footer>
@@ -835,6 +842,39 @@ function frameRms(pcm, start, win){
 
 /* pitch on a ~8 kHz decimated copy — F0 tops out at 400 Hz, and this cuts the
    autocorrelation cost ~40x so long clips analyze in well under a second */
+/* Normalized autocorrelation: divide by the energy of each overlap so a long
+   lag (low pitch) is not punished just because fewer samples are multiplied. */
+function bestNormalizedLag(buf, offset, size, minLag, maxLag){
+  var prefix = new Float64Array(size + 1);
+  var scores = new Float64Array(maxLag + 1);
+  for(var i = 0; i < size; i++){
+    var s = buf[offset + i];
+    prefix[i + 1] = prefix[i] + s * s;
+  }
+  var best = 0;
+  for(var lag = minLag; lag <= maxLag; lag++){
+    var n = size - lag;
+    var sum = 0;
+    var base = offset;
+    for(var k = 0; k < n; k++) sum += buf[base + k] * buf[base + k + lag];
+    var e0 = prefix[n];
+    var e1 = prefix[lag + n] - prefix[lag];
+    var denom = Math.sqrt(e0 * e1);
+    var score = denom > 1e-8 ? sum / denom : 0;
+    scores[lag] = score;
+    if(score > best) best = score;
+  }
+  if(best < 0.45) return {score: best, lag: 0};
+  /* shortest lag near the best peak: the fundamental, not a later subharmonic */
+  var gate = Math.max(0.45, best * 0.9);
+  for(var lag2 = minLag; lag2 <= maxLag; lag2++){
+    if(scores[lag2] >= gate){
+      while(lag2 < maxLag && scores[lag2 + 1] >= scores[lag2]) lag2++;
+      return {score: scores[lag2], lag: lag2};
+    }
+  }
+  return {score: best, lag: 0};
+}
 function framePitch(dec, startD, srD){
   var SIZE = Math.min(512, dec.length - startD);
   if(SIZE < 128) return 0;
@@ -842,15 +882,9 @@ function framePitch(dec, startD, srD){
   if(rms < 0.006) return 0;
   var minLag = Math.floor(srD / 400);
   var maxLag = Math.min(Math.floor(srD / 60), SIZE - 1);
-  var best = 0, bestLag = 0, zero = 0;
-  for(var j = startD; j < startD + SIZE; j++) zero += dec[j] * dec[j];
-  for(var lag = minLag; lag <= maxLag; lag++){
-    var sum = 0;
-    for(var k = startD; k < startD + SIZE - lag; k++) sum += dec[k] * dec[k + lag];
-    if(sum > best){ best = sum; bestLag = lag; }
-  }
-  if(!bestLag || best / zero < 0.45) return 0;
-  return srD / bestLag;
+  var pick = bestNormalizedLag(dec, startD, SIZE, minLag, maxLag);
+  if(!pick.lag || pick.score < 0.45) return 0;
+  return srD / pick.lag;
 }
 
 function extractFeatures(pcm, sr){
@@ -979,7 +1013,8 @@ function scoreEmotions(f){
   var down   = clamp01(-f.slopeRel / 0.18);
   var brief  = clamp01((3.2 - f.speechDur) / 2.4);
 
-  var s = {
+  /* Independent evidence in 0..1. These are not shares of one probability. */
+  var raw = {
     calm:      0.34*(1-nDyn) + 0.26*(1-nJit) + 0.20*(1-nRate) + 0.20*(1-nRange) - 0.18*nPause - 0.10*nEng,
     happy:     0.30*nRange + 0.26*nRate + 0.20*nEng + 0.14*up + 0.10*nDyn - 0.16*nPause,
     surprised: 0.34*nRange + 0.22*up + 0.22*brief + 0.12*nJit + 0.10*nEng,
@@ -987,11 +1022,17 @@ function scoreEmotions(f){
     angry:     0.30*nEng + 0.24*nDyn + 0.22*nRate + 0.14*nRange - 0.18*nPause - 0.12*nJit,
     sad:       0.30*(1-nRate) + 0.26*(1-nEng) + 0.20*nPause + 0.14*down - 0.16*nRange
   };
-  var total = 0, k;
-  for(k in s){ s[k] = Math.max(0.02, s[k]); total += s[k]; }
-  for(k in s){ s[k] = s[k] / total; }
+  var s = {}, top = -1, second = -1, k;
+  for(k in raw){
+    s[k] = clamp01(raw[k]);
+    if(s[k] > top){ second = top; top = s[k]; }
+    else if(s[k] > second) second = s[k];
+  }
+  var margin = Math.max(0, top - Math.max(0, second));
+  var pitchOk = f.meanF0 > 0 ? 1 : 0.35;
+  var confidence = clamp01((f.voicedRatio || 0) * pitchOk * (0.35 + 0.65 * margin));
   var stress = 100 * clamp01(0.32*nJit + 0.22*nPause + 0.20*nDyn + 0.16*nRange + 0.10*nEng);
-  return {scores: s, stress: stress};
+  return {scores: s, stress: stress, confidence: confidence};
 }
 
 /* ---------- results ---------- */
@@ -1020,9 +1061,12 @@ function renderResults(f, r){
   var domLabel = EMOTIONS.filter(function(e){ return e.key === domKey; })[0].label;
   var verdict = document.getElementById('verdict');
   verdict.style.display = '';
-  document.getElementById('v-emotion').innerHTML = domLabel.toUpperCase() + ' <span>' + Math.round(domVal * 100) + '%</span>';
-  var lowConf = f.voicedRatio < 0.18;
-  document.getElementById('v-desc').textContent = VERDICTS[domKey] + (lowConf ? ' (Low confidence — little voiced speech detected.)' : '');
+  var evidence = Math.round(domVal * 100);
+  var confidence = Math.round((r.confidence || 0) * 100);
+  document.getElementById('v-emotion').textContent = domLabel.toUpperCase();
+  document.getElementById('v-conf').textContent = 'EVIDENCE ' + evidence + ' · CONFIDENCE ' + confidence;
+  var lowConf = (r.confidence || 0) < 0.35 || f.voicedRatio < 0.18;
+  document.getElementById('v-desc').textContent = VERDICTS[domKey] + (lowConf ? ' Low confidence — treat the label as a weak hint.' : ' Heuristic read. The evidence number is not a probability.');
 
   var gv = document.getElementById('gauge-val');
   gv.style.strokeDashoffset = String(ARC - (Math.min(r.stress, 100) / 100) * ARC);
@@ -1041,7 +1085,7 @@ function renderResults(f, r){
   document.getElementById('st-frames').textContent = String(f.frames);
   document.getElementById('st-voiced').textContent = Math.round(f.voicedRatio * 100) + '%';
 
-  log('ok', 'analysis complete · dominant ' + domKey.toUpperCase() + ' ' + Math.round(domVal * 100) + '%');
+  log('ok', 'analysis complete · strongest ' + domKey.toUpperCase() + ' evidence ' + Math.round(domVal * 100) + ' · confidence ' + Math.round((r.confidence || 0) * 100));
   if(r.stress >= 65) log('crit', 'vocal stress index ' + Math.round(r.stress) + ' — HIGH');
   else if(r.stress >= 35) log('warn', 'vocal stress index ' + Math.round(r.stress) + ' — ELEVATED');
   else log('ok', 'vocal stress index ' + Math.round(r.stress) + ' — LOW');
@@ -1085,6 +1129,7 @@ function pushHist(f, r, domKey){
     dur: Math.round(f.clipDur * 10) / 10,
     dom: domKey,
     domPct: Math.round((r.scores[domKey] || 0) * 100),
+    confidence: Math.round((r.confidence || 0) * 100),
     stress: Math.round(r.stress),
     scores: EMOTIONS.map(function(e){ return Math.round((r.scores[e.key] || 0) * 100); })
   });
@@ -1110,7 +1155,7 @@ function renderHist(){
     }).join('');
     item.innerHTML =
       '<span class="num">' + pad(d.getHours(),2) + ':' + pad(d.getMinutes(),2) + '</span>' +
-      '<span><span class="dom">' + en.dom.toUpperCase() + '</span> <b>' + en.domPct + '%</b></span>' +
+      '<span><span class="dom">' + en.dom.toUpperCase() + '</span> <b>' + en.domPct + '</b> · conf <b>' + (en.confidence == null ? '—' : en.confidence) + '</b></span>' +
       '<span>stress <b>' + en.stress + '</b></span>' +
       '<span class="hist-bars">' + bars + '</span>';
     item.addEventListener('click', function(){ restoreHist(en); });
@@ -1127,13 +1172,14 @@ function restoreHist(en){
   var verdict = document.getElementById('verdict');
   verdict.style.display = '';
   var domLabel = (EMOTIONS.filter(function(e){ return e.key === en.dom; })[0] || {label: en.dom}).label;
-  document.getElementById('v-emotion').innerHTML = domLabel.toUpperCase() + ' <span>' + en.domPct + '%</span>';
-  document.getElementById('v-desc').textContent = (VERDICTS[en.dom] || '') + ' (Loaded from history.)';
+  document.getElementById('v-emotion').textContent = domLabel.toUpperCase();
+  document.getElementById('v-conf').textContent = 'EVIDENCE ' + en.domPct + ' · CONFIDENCE ' + (en.confidence == null ? '—' : en.confidence);
+  document.getElementById('v-desc').textContent = (VERDICTS[en.dom] || '') + ' Loaded from history. Evidence is not a probability.';
   var gv = document.getElementById('gauge-val');
   gv.style.strokeDashoffset = String(ARC - (Math.min(en.stress, 100) / 100) * ARC);
   gv.style.stroke = en.stress < 35 ? '#34d399' : en.stress < 65 ? '#fbbf24' : '#f87171';
   document.getElementById('gauge-num').textContent = String(en.stress);
-  log('info', 'history entry loaded · ' + en.dom.toUpperCase() + ' ' + en.domPct + '%');
+  log('info', 'history entry loaded · ' + en.dom.toUpperCase() + ' evidence ' + en.domPct + (en.confidence == null ? '' : ' · confidence ' + en.confidence));
 }
 document.getElementById('hist-clear').addEventListener('click', function(){
   saveHist([]);

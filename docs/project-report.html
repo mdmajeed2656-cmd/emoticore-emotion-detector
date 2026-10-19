@@ -97,7 +97,7 @@ td code{white-space:nowrap;}
 <body>
 
 <div class="cover">
-  <div class="brand">Emoticore Systems · Project Documentation</div>
+  <div class="brand">Emoticore · Project Documentation</div>
   <h1>EMOTI<span>CORE</span> — Project Report</h1>
   <p class="sub">AI-powered behavioral threat detection, running entirely in the browser. Complete record of what was built, the technologies and models used, the algorithms behind each feature, and the decisions that shaped them.</p>
   <div class="meta">
@@ -110,7 +110,7 @@ td code{white-space:nowrap;}
 </div>
 
 <h2><span class="no">01</span>Executive overview</h2>
-<p><strong>Emoticore</strong> is a product concept for an AI security platform that fuses live camera feeds and speech analysis into a single behavioral threat picture — "Detect intent before it becomes incident." This project implements it as a complete, working website: an enterprise-grade marketing page plus <strong>three real, functioning product surfaces</strong> where the AI genuinely runs.</p>
+<p><strong>Emoticore</strong> is a personal browser demo that fuses a webcam and a microphone into one on-screen score — "Score affect before you call it a threat." The landing page states what the code actually computes. Three product surfaces run the analysis for real.</p>
 <p>Everything is built under four deliberate constraints:</p>
 <ul>
   <li><strong>No backend.</strong> Every page is a self-contained static HTML file — no server, no database, no accounts.</li>
@@ -131,9 +131,9 @@ td code{white-space:nowrap;}
 
 <h3>index.html — Landing page</h3>
 <ul>
-  <li>Animated hero: particle-constellation canvas, glitch-effect brandline, staggered load choreography, animated stat counters (99.2%, &lt;400ms, 140+).</li>
-  <li>Simulated operations console: canvas camera-feed simulation with wandering subject lock, drifting telemetry bars, typing event log with UTC timestamps.</li>
-  <li>Capability rack (Speech / Face / Scoring bays with live canvas visuals), scroll-drawn pipeline section, fictional-client trust marquee, big ops-dashboard mockup with SVG threat gauge, deployments, pull-quote, CTA band, 5-column footer.</li>
+  <li>Animated hero: particle-constellation canvas, glitch-effect brandline, staggered load choreography, animated stat counters (7 expression classes, 68 landmarks drawn, 0 frames uploaded).</li>
+  <li>Simulated operations console, labeled as a simulation: canvas camera-feed picture with wandering subject lock, drifting telemetry bars, typing event log with UTC timestamps.</li>
+  <li>Capability rack (Speech / Face / Scoring bays with live canvas visuals), scroll-drawn pipeline section, sector marquee marked as not customers, big ops-dashboard mockup with SVG threat gauge, deployment cards that say what the demo does not do, scope note, CTA band, footer linking to real project files.</li>
   <li>Scroll-reveal system via IntersectionObserver; fully responsive with a mobile hamburger menu; respects <code>prefers-reduced-motion</code>.</li>
 </ul>
 
@@ -183,7 +183,7 @@ td code{white-space:nowrap;}
 <h3>4.1 Facial pipeline — neural networks (demo.html, console.html)</h3>
 <table>
   <tr><th>Model</th><th>Task</th><th>Output</th></tr>
-  <tr><td><code>tinyFaceDetector</code></td><td>Face detection (Tiny-YOLO-style)</td><td>Bounding boxes + confidence; input 416 px, threshold 0.4</td></tr>
+  <tr><td><code>tinyFaceDetector</code></td><td>Face detection (Tiny Face Detector, not YOLO)</td><td>Bounding boxes + confidence; input 416 px, threshold 0.4</td></tr>
   <tr><td><code>faceLandmark68TinyNet</code></td><td>Facial landmarks</td><td>68 landmark points per face</td></tr>
   <tr><td><code>faceExpressionNet</code></td><td>Expression classification</td><td>7 classes: neutral, happy, sad, angry, fearful, disgusted, surprised (probabilities)</td></tr>
 </table>
@@ -191,10 +191,10 @@ td code{white-space:nowrap;}
 
 <h3>4.2 Vocal pipeline — signal processing (voice.html, console.html)</h3>
 <ul>
-  <li><strong>Pitch (F0):</strong> autocorrelation over a ~8 kHz decimated copy of the signal, 60–400 Hz search range, confidence-gated. Decimation cuts the ACF cost ~40× so a 15 s clip analyzes in well under a second.</li>
+  <li><strong>Pitch (F0):</strong> normalized autocorrelation (overlap energy in the denominator, so longer lags are not penalized). The tracker keeps the first strong peak, which is the fundamental, instead of a later subharmonic. Search range 60–400 Hz, coefficient gated at 0.45, on a ~8 kHz decimated copy. Decimation cuts the ACF cost ~40× so a 15 s clip analyzes in well under a second.</li>
   <li><strong>Loudness:</strong> per-frame RMS → dB; <strong>jitter:</strong> frame-to-frame F0 delta / mean; <strong>rate:</strong> energy-peak (syllable-proxy) count per second; <strong>pauses:</strong> sub-threshold frame ratio; <strong>contour:</strong> linear-fit F0 slope.</li>
-  <li><strong>Live vocal stress (console):</strong> a per-session baseline is calibrated from the speaker's first ~30 voiced frames (median F0); stress then measures deviation — pitch elevation + jitter + loudness spikes vs. that personal baseline.</li>
-  <li><strong>Clip emotion estimate (voice page):</strong> extracted features are normalized and combined through per-emotion weighted scoring functions, floored and normalized to percentages across the six categories.</li>
+  <li><strong>Live vocal stress (console):</strong> a per-session baseline is calibrated from the speaker's first ~30 voiced frames (median F0 and median RMS); stress then measures deviation — pitch elevation + jitter + loudness spikes vs. that personal baseline.</li>
+  <li><strong>Clip emotion estimate (voice page):</strong> extracted features feed six independent weighted scores, each clamped to 0–100. They are not forced to sum to 100%. A separate confidence uses how voiced the clip is and how far the top score sits above the second. The UI labels both as a heuristic.</li>
 </ul>
 
 <h3>4.3 Threat fusion (console.html)</h3>
@@ -214,8 +214,8 @@ close:&nbsp;threat &lt; ELEVATED − 5 sustained ≥ 2.0 s&nbsp;&nbsp;// hystere
 escalate: peak ≥ HIGH → severity HIGH
 </div>
 
-<h3>4.5 Subject tracking (demo.html)</h3>
-<p>Greedy intersection-over-union matching of face boxes between consecutive frames (IoU &gt; 0.2, best-pair-first); unmatched detections get new IDs; tracks expire after 1.2 s unseen. Result: <code>SUBJ_01</code>/<code>SUBJ_02</code> labels stay attached to the same person.</p>
+<h3>4.5 Subject tracking (demo.html, console.html)</h3>
+<p>Greedy intersection-over-union matching of face boxes between consecutive frames (IoU &gt; 0.2, best-pair-first); unmatched detections get new IDs; tracks expire after 1.2 s unseen. Result: <code>SUBJ_01</code>/<code>SUBJ_02</code> labels stay attached to the same person on both the camera demo and the operations console. The console's largest face is still the one that feeds the score, but the id does not reset when someone else becomes larger.</p>
 
 <h2 class="pb"><span class="no">05</span>Design system</h2>
 <p>Direction: <strong>"defense-tech mission control"</strong> — instrument panels, hairline borders, monospace telemetry; restrained glow rather than neon-everything. Single dark theme, committed deliberately.</p>
@@ -257,7 +257,7 @@ escalate: peak ≥ HIGH → severity HIGH
 
 <h2><span class="no">08</span>Honest limitations</h2>
 <div class="note">
-<strong>Demo-grade accuracy.</strong> The face models are open, lightweight networks — excellent for a pitch, not the "99.2%" of the marketing copy. The vocal stress and voice-emotion scores are transparent DSP heuristics (prosody distinguishes arousal well, valence roughly), labeled "not a clinical measure" in the UI. A production system would need serious models, validation datasets, and a legal/compliance review — emotion recognition is regulated in some jurisdictions (e.g. the EU AI Act).
+<strong>Demo-grade accuracy.</strong> The face models are open, lightweight networks. The site does not claim a measured accuracy, a certification, or a customer. The vocal stress and voice-emotion scores are transparent DSP heuristics (prosody distinguishes arousal well, valence roughly), labeled as heuristics rather than a clinical measure. A production system would need serious models, validation datasets, and a legal/compliance review — emotion recognition is regulated in some jurisdictions (e.g. the EU AI Act).
 </div>
 <ul>
   <li>Session data lives in memory; closing the tab discards an unexported session.</li>

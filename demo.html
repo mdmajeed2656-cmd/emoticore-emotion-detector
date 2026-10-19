@@ -206,8 +206,9 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .side{padding:24px 24px 20px;display:flex;flex-direction:column;min-height:480px;}
 .side h4{
   font-family:var(--font-mono);font-size:0.66rem;font-weight:500;letter-spacing:0.2em;
-  text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;
 }
+.score-note{font-size:0.72rem;color:var(--ink-3);line-height:1.45;margin:0 0 14px;}
 .erow{margin-bottom:11px;}
 .erow .line1{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.74rem;margin-bottom:5px;}
 .erow .line1 .en{color:var(--ink);}
@@ -315,7 +316,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
     <div class="page-head">
       <span class="tag">Live demonstration</span>
       <h1>Facial emotion analysis — running in your browser.</h1>
-      <p class="sub">This is a real, working demo of Emoticore's facial signal pipeline. Grant camera access and the system will detect faces, classify expressions, and compute a live threat index — entirely on this device.</p>
+      <p class="sub">Grant camera access and this page detects faces, shows the model's seven-class mix, and computes a live heuristic index — entirely on this device. The index is not intent, and it is not a measured accuracy.</p>
       <span class="privacy-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
         NO VIDEO LEAVES YOUR DEVICE — ALL INFERENCE IS LOCAL
@@ -358,7 +359,8 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
         </div>
 
         <div class="side">
-          <h4>Affect telemetry — live</h4>
+          <h4>Expression distribution</h4>
+          <p class="score-note" id="model-conf">The bars are the network's class mix, so they share about 100%. Model confidence appears once a face is locked. The gauge below is a separate heuristic.</p>
           <div id="emotion-rows"></div>
           <div class="threat">
             <div class="gauge">
@@ -368,7 +370,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
               </svg>
               <div class="g-read">
                 <span class="g-num num" id="gauge-num">—</span>
-                <span class="g-cap">Threat idx</span>
+                <span class="g-cap">Heuristic</span>
               </div>
             </div>
             <div class="threat-info">
@@ -402,7 +404,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 
 <footer class="mini-footer">
   <div class="wrap">
-    <span>© 2026 EMOTICORE SYSTEMS, INC.</span>
+    <span>© 2026 EMOTICORE · PERSONAL DEMO</span>
     <span>DEMO BUILD · FACIAL PIPELINE · <a href="voice.html" style="color:var(--cyan)">VOICE DEMO →</a> · <a href="console.html" style="color:var(--cyan)">FULL CONSOLE →</a></span>
   </div>
 </footer>
@@ -491,9 +493,9 @@ var threatDesc = document.getElementById('threat-desc');
 var threatIdx = 0;
 var lastLevel = 'IDLE';
 function threatLevel(v){
-  if(v < 35) return {cls:'t-low', color:'#34d399', label:'LOW', desc:'Subject within nominal affect ranges.'};
-  if(v < 65) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Negative-affect cluster detected. Monitoring closely.'};
-  return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Strong negative-affect signal. In production an alert would dispatch to your SOC.'};
+  if(v < 35) return {cls:'t-low', color:'#34d399', label:'LOW', desc:'Heuristic only. Negative-affect weights are quiet. This is not intent.'};
+  if(v < 65) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Heuristic only. Negative-affect weights are up. This is not a classification.'};
+  return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Heuristic only. Strong negative-affect weights. Nothing is dispatched from this page.'};
 }
 function renderThreat(v, hasFace){
   gaugeNum.textContent = hasFace ? String(Math.round(v)) : '—';
@@ -616,9 +618,10 @@ async function start(){
   var ar = vw / vh;
   feedWrap.style.aspectRatio = vw + ' / ' + vh;
   feedWrap.style.width = 'min(100%, calc(66vh * ' + ar.toFixed(4) + '))';
-  document.getElementById('hud-res').textContent = vw + '×' + vh + ' · 30FPS';
+  feedRes = vw + '×' + vh;
+  document.getElementById('hud-res').textContent = feedRes + ' · — FPS';
   document.getElementById('st-res').textContent = vw + '×' + vh;
-  document.getElementById('st-engine').textContent = 'TINY-YOLO + EXPR NET';
+  document.getElementById('st-engine').textContent = 'TINY FACE DETECTOR + EXPR';
 
   sizeOverlay();
   gate.classList.add('hidden');
@@ -659,6 +662,7 @@ function stop(){
   document.getElementById('st-lat').textContent = '— ms';
   document.getElementById('st-faces').textContent = '0';
   document.getElementById('st-engine').textContent = 'STANDBY';
+  document.getElementById('model-conf').textContent = 'The bars are the network\'s class mix, so they share about 100%. Model confidence appears once a face is locked. The gauge below is a separate heuristic.';
   tracks = [];
   nextTrackId = 1;
   log('warn', 'feed terminated by operator');
@@ -676,7 +680,7 @@ function sizeOverlay(){
 window.addEventListener('resize', function(){ if(running) sizeOverlay(); });
 
 /* ---------- detection loop ---------- */
-var frameCount = 0, fpsT0 = performance.now();
+var frameCount = 0, fpsT0 = performance.now(), feedRes = '';
 var faceWasPresent = false;
 var lastDominant = '';
 
@@ -703,6 +707,7 @@ async function detectLoop(){
   var now = performance.now();
   if(now - fpsT0 >= 1000){
     document.getElementById('st-fps').textContent = String(frameCount);
+    if(feedRes) document.getElementById('hud-res').textContent = feedRes + ' · ' + frameCount + ' FPS';
     frameCount = 0;
     fpsT0 = now;
   }
@@ -826,6 +831,7 @@ function telemetry(dets, lat){
     : 'SUBJ — · SEARCHING';
 
   if(!hasFace){
+    document.getElementById('model-conf').textContent = 'No face in frame. Model confidence is unavailable. The gauge is a heuristic and is fading.';
     /* decay all bars and threat toward zero */
     EMOTIONS.forEach(function(e){
       smooth[e.key] *= 0.9;
@@ -857,9 +863,10 @@ function telemetry(dets, lat){
     rowEls[e.key].row.classList.toggle('dominant', e.key === domKey);
   });
 
+  document.getElementById('model-conf').textContent = 'Model confidence ' + Math.round((ex[domKey] || 0) * 100) + '% on ' + domKey + ' · face detect ' + (primary.detection.score || 0).toFixed(2) + '. The gauge is a separate heuristic, not this percentage.';
   if(domKey !== lastDominant && ex[domKey] > 0.45){
     lastDominant = domKey;
-    log('info', 'dominant affect → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '%');
+    log('info', 'model class → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '% of the distribution');
   }
 
   /* threat index: weighted negative affect, smoothed */

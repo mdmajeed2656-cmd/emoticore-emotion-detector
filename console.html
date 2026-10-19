@@ -214,8 +214,9 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;}
 .rail-pane.active{display:block;}
 .rail h4{
   font-family:var(--font-mono);font-size:0.64rem;font-weight:500;letter-spacing:0.18em;
-  text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;
 }
+.score-note{font-size:0.7rem;color:var(--ink-3);line-height:1.45;margin:0 0 12px;}
 .erow{margin-bottom:9px;}
 .erow .line1{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.72rem;margin-bottom:4px;}
 .erow .line1 .en{color:var(--ink);}
@@ -513,7 +514,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
           <div class="gate" id="gate">
             <div class="reticle" id="reticle"></div>
             <h2 id="gate-title">Initialize operations console</h2>
-            <p id="gate-copy">Camera and microphone fuse into one live threat picture. Record sessions, capture incidents, export reports. Everything runs on this device — denying the mic still runs the facial pipeline.</p>
+            <p id="gate-copy">Camera and microphone fuse into one live heuristic score. It is not a classification and not a measure of intent. Record a session, log incidents, export a local file. Everything runs on this device — denying the mic still runs the facial pipeline.</p>
             <div class="gate-status" id="gate-status"></div>
             <button class="btn btn-primary" id="start-btn">Initialize console →</button>
           </div>
@@ -531,7 +532,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
           <button class="rail-tab" id="tab-inc">Incidents <span class="badge" id="inc-count" style="display:none">0</span></button>
         </div>
         <div class="rail-pane active" id="pane-tele">
-          <h4>Affect telemetry — SUBJ_01</h4>
+          <h4 id="tele-head">Affect telemetry</h4>
+          <p class="score-note" id="model-conf">The bars are the network's class mix, so they share about 100%. Model confidence appears once a face is locked. The gauge is a separate heuristic blend.</p>
           <div id="emotion-rows"></div>
           <div class="vox-block">
             <h4>Vocal telemetry</h4>
@@ -548,7 +550,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
               </svg>
               <div class="g-read">
                 <span class="g-num num" id="gauge-num">—</span>
-                <span class="g-cap">Threat idx</span>
+                <span class="g-cap">Heuristic</span>
               </div>
             </div>
             <div class="threat-info">
@@ -795,9 +797,9 @@ var threatStatus = $('threat-status'), threatLabel = $('threat-label'), threatDe
 var lastLevel = 'IDLE';
 
 function threatLevel(v){
-  if(v < S.elev) return {cls:'t-low', color:'#34d399', label:'LOW', desc:'Subject within nominal affect ranges.'};
-  if(v < S.high) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Negative-affect cluster detected. Monitoring closely.'};
-  return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Strong negative-affect signal. Incident engine engaged.'};
+  if(v < S.elev) return {cls:'t-low', color:'#34d399', label:'LOW', desc:'Heuristic blend is quiet. This is not intent.'};
+  if(v < S.high) return {cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Heuristic blend is elevated. Not a classification.'};
+  return {cls:'t-high', color:'#f87171', label:'HIGH', desc:'Heuristic blend is high. The incident log is a demo, not a dispatch.'};
 }
 function renderThreat(v, hasSignal, driver){
   gaugeNum.textContent = hasSignal ? String(Math.round(v)) : '—';
@@ -923,7 +925,8 @@ async function start(){
   var ar = vw / vh;
   feedWrap.style.aspectRatio = vw + ' / ' + vh;
   feedWrap.style.width = 'min(100%, calc(56vh * ' + ar.toFixed(4) + '))';
-  $('hud-res').textContent = vw + '×' + vh + ' · 30FPS';
+  feedRes = vw + '×' + vh;
+  $('hud-res').textContent = feedRes + ' · — FPS';
 
   sizeOverlay();
   sizeChart();
@@ -949,7 +952,7 @@ function sizeOverlay(){
 }
 window.addEventListener('resize', function(){ if(running) sizeOverlay(); sizeChart(); drawChart(); });
 
-var frameCount = 0, fpsT0 = performance.now();
+var frameCount = 0, fpsT0 = performance.now(), feedRes = '';
 var faceWasPresent = false, lastDominant = '';
 
 async function detectLoop(){
@@ -969,12 +972,53 @@ async function detectLoop(){
   var now = performance.now();
   if(now - fpsT0 >= 1000){
     $('st-fps').textContent = String(frameCount);
+    if(feedRes) $('hud-res').textContent = feedRes + ' · ' + frameCount + ' FPS';
     frameCount = 0; fpsT0 = now;
   }
   requestAnimationFrame(detectLoop);
 }
 
 function mx(x, W){ return W - x; }
+
+/* greedy IoU matching — same tracker as the camera demo, so IDs survive a size swap */
+var tracks = [], nextTrackId = 1, lastPrimaryLabel = 'SUBJ_01';
+function boxIoU(a, b){
+  var x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y);
+  var x2 = Math.min(a.x + a.width, b.x + b.width);
+  var y2 = Math.min(a.y + a.height, b.y + b.height);
+  var inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  var union = a.width * a.height + b.width * b.height - inter;
+  return union > 0 ? inter / union : 0;
+}
+function assignTracks(dets){
+  var now = performance.now();
+  var assigned = dets.map(function(){ return 0; });
+  var pairs = [];
+  dets.forEach(function(d, i){
+    tracks.forEach(function(tr, j){
+      var iou = boxIoU(d.detection.box, tr.box);
+      if(iou > 0.2) pairs.push({i: i, j: j, iou: iou});
+    });
+  });
+  pairs.sort(function(a, b){ return b.iou - a.iou; });
+  var takenDet = {}, takenTr = {};
+  pairs.forEach(function(p){
+    if(takenDet[p.i] || takenTr[p.j]) return;
+    takenDet[p.i] = true; takenTr[p.j] = true;
+    tracks[p.j].box = dets[p.i].detection.box;
+    tracks[p.j].lastSeen = now;
+    assigned[p.i] = tracks[p.j].id;
+  });
+  dets.forEach(function(d, i){
+    if(!assigned[i]){
+      var tr = {id: nextTrackId++, box: d.detection.box, lastSeen: now};
+      tracks.push(tr);
+      assigned[i] = tr.id;
+    }
+  });
+  tracks = tracks.filter(function(tr){ return now - tr.lastSeen < 1200; });
+  return assigned;
+}
 
 function draw(dets, W, H){
   octx.clearRect(0, 0, W, H);
@@ -984,6 +1028,8 @@ function draw(dets, W, H){
     var b = d.detection.box;
     if(b.width * b.height > maxA){ maxA = b.width * b.height; primary = i; }
   });
+  var ids = assignTracks(dets);
+  lastPrimaryLabel = 'SUBJ_' + pad(ids[primary], 2);
   dets.forEach(function(d, i){
     var b = d.detection.box;
     var x = mx(b.x + b.width, W), y = b.y, w = b.width, h = b.height;
@@ -1009,7 +1055,7 @@ function draw(dets, W, H){
     var domKey = topExpression(d.expressions);
     octx.font = '10px "IBM Plex Mono", monospace';
     octx.fillStyle = col;
-    var label = (isP ? 'SUBJ_01' : 'TRK_0' + (i + 1)) + ' · ' + domKey.toUpperCase() + ' · ' + d.detection.score.toFixed(2);
+    var label = 'SUBJ_' + pad(ids[i], 2) + ' · ' + domKey.toUpperCase() + ' · ' + d.detection.score.toFixed(2);
     octx.fillText(label, x, Math.max(12, y - 8));
   });
 }
@@ -1025,15 +1071,24 @@ function telemetry(dets, lat){
   $('hud-lat').textContent = 'INFER ' + lat.toFixed(0) + ' ms';
   $('st-faces').textContent = String(dets.length);
   var hasFace = dets.length > 0;
+  var primaryIdx = 0, lockArea = 0;
+  if(hasFace){
+    dets.forEach(function(d, i){
+      var b = d.detection.box;
+      if(b.width * b.height > lockArea){ lockArea = b.width * b.height; primaryIdx = i; }
+    });
+  }
   if(hasFace !== faceWasPresent){
     faceWasPresent = hasFace;
-    if(hasFace) log('ok', 'subject acquired · conf ' + dets[0].detection.score.toFixed(2));
+    if(hasFace) log('ok', lastPrimaryLabel + ' acquired · conf ' + dets[primaryIdx].detection.score.toFixed(2));
     else log('warn', 'subject lost · signal dropped');
   }
   $('hud-subj').textContent = hasFace
-    ? 'SUBJ_01 · LOCKED (' + dets.length + ' IN FRAME)'
+    ? lastPrimaryLabel + ' · LOCKED (' + dets.length + ' IN FRAME)'
     : 'SUBJ — · SEARCHING';
+  $('tele-head').textContent = hasFace ? 'Affect telemetry — ' + lastPrimaryLabel : 'Affect telemetry';
   if(!hasFace){
+    $('model-conf').textContent = 'No face in frame. Model confidence is unavailable. The gauge is a heuristic blend and is fading.';
     EMOTIONS.forEach(function(e){
       smooth[e.key] *= 0.9;
       var pct = Math.round(smooth[e.key] * 100);
@@ -1045,11 +1100,7 @@ function telemetry(dets, lat){
     fuseAndRender(false);
     return;
   }
-  var primary = dets[0], maxA = 0;
-  dets.forEach(function(d){
-    var b = d.detection.box;
-    if(b.width * b.height > maxA){ maxA = b.width * b.height; primary = d; }
-  });
+  var primary = dets[primaryIdx];
   var ex = primary.expressions;
   var domKey = topExpression(ex);
   EMOTIONS.forEach(function(e){
@@ -1060,9 +1111,10 @@ function telemetry(dets, lat){
     rowEls[e.key].fill.style.width = pct + '%';
     rowEls[e.key].row.classList.toggle('dominant', e.key === domKey);
   });
+  $('model-conf').textContent = lastPrimaryLabel + ' · model confidence ' + Math.round((ex[domKey] || 0) * 100) + '% on ' + domKey + ' · face detect ' + (primary.detection.score || 0).toFixed(2) + '. The gauge blends this with voice. It is not that percentage.';
   if(domKey !== lastDominant && ex[domKey] > 0.45){
     lastDominant = domKey;
-    log('info', 'dominant affect → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '%');
+    log('info', 'model class → ' + domKey.toUpperCase() + ' ' + (ex[domKey]*100).toFixed(0) + '% of the distribution');
   }
   facialRaw = 100 * Math.min(1,
     (ex.angry || 0) * 1.0 +
@@ -1075,7 +1127,7 @@ function telemetry(dets, lat){
 }
 
 /* ================= VOX ================= */
-var f0Hist = [], baseF0 = 0, baseRMS = 0, calibSamples = [];
+var f0Hist = [], baseF0 = 0, baseRMS = 0, calibSamples = [], calibRms = [];
 var voxFrame = 0, lastF0 = 0, lastDb = -60, voxLooping = false;
 
 async function initVox(){
@@ -1138,6 +1190,39 @@ function sizeVoxCanvas(){
 }
 window.addEventListener('resize', function(){ if(voxOn) sizeVoxCanvas(); });
 
+/* Normalized autocorrelation: divide by the energy of each overlap so a long
+   lag (low pitch) is not punished just because fewer samples are multiplied. */
+function bestNormalizedLag(buf, offset, size, minLag, maxLag){
+  var prefix = new Float64Array(size + 1);
+  var scores = new Float64Array(maxLag + 1);
+  for(var i = 0; i < size; i++){
+    var s = buf[offset + i];
+    prefix[i + 1] = prefix[i] + s * s;
+  }
+  var best = 0;
+  for(var lag = minLag; lag <= maxLag; lag++){
+    var n = size - lag;
+    var sum = 0;
+    var base = offset;
+    for(var k = 0; k < n; k++) sum += buf[base + k] * buf[base + k + lag];
+    var e0 = prefix[n];
+    var e1 = prefix[lag + n] - prefix[lag];
+    var denom = Math.sqrt(e0 * e1);
+    var score = denom > 1e-8 ? sum / denom : 0;
+    scores[lag] = score;
+    if(score > best) best = score;
+  }
+  if(best < 0.45) return {score: best, lag: 0};
+  /* shortest lag near the best peak: the fundamental, not a later subharmonic */
+  var gate = Math.max(0.45, best * 0.9);
+  for(var lag2 = minLag; lag2 <= maxLag; lag2++){
+    if(scores[lag2] >= gate){
+      while(lag2 < maxLag && scores[lag2 + 1] >= scores[lag2]) lag2++;
+      return {score: scores[lag2], lag: lag2};
+    }
+  }
+  return {score: best, lag: 0};
+}
 function detectPitch(buf, sr){
   var SIZE = 1024;
   var rms = 0;
@@ -1146,15 +1231,9 @@ function detectPitch(buf, sr){
   if(rms < 0.01) return {f0: 0, rms: rms};
   var minLag = Math.floor(sr / 400);
   var maxLag = Math.min(Math.floor(sr / 60), SIZE - 1);
-  var best = 0, bestLag = 0, zero = 0;
-  for(var j = 0; j < SIZE; j++) zero += buf[j] * buf[j];
-  for(var lag = minLag; lag <= maxLag; lag++){
-    var sum = 0;
-    for(var k = 0; k < SIZE - lag; k++) sum += buf[k] * buf[k + lag];
-    if(sum > best){ best = sum; bestLag = lag; }
-  }
-  if(!bestLag || best / zero < 0.45) return {f0: 0, rms: rms};
-  return {f0: sr / bestLag, rms: rms};
+  var pick = bestNormalizedLag(buf, 0, SIZE, minLag, maxLag);
+  if(!pick.lag || pick.score < 0.45) return {f0: 0, rms: rms};
+  return {f0: sr / pick.lag, rms: rms};
 }
 
 function voxLoop(){
@@ -1203,10 +1282,12 @@ function analyzeVoice(){
     if(f0Hist.length > 24) f0Hist.shift();
     if(!voxReady){
       calibSamples.push(p.f0);
+      calibRms.push(p.rms);
       if(calibSamples.length >= 30){
         var sorted = calibSamples.slice().sort(function(a, b){ return a - b; });
+        var sortedRms = calibRms.slice().sort(function(a, b){ return a - b; });
         baseF0 = sorted[Math.floor(sorted.length / 2)];
-        baseRMS = p.rms;
+        baseRMS = sortedRms[Math.floor(sortedRms.length / 2)];
         voxReady = true;
         var vs = $('vx-state');
         vs.textContent = 'BASELINE LOCKED · F0 ' + baseF0.toFixed(0) + ' Hz';
@@ -1414,6 +1495,7 @@ function openIncident(t){
     peak: Math.round(threatIdx),
     sev: threatIdx >= S.high ? 'high' : 'elev',
     driver: lastDriver || 'FACIAL',
+    subject: lastPrimaryLabel || 'SUBJ_—',
     thumb: snapFrame()
   };
   var card = document.createElement('div');
@@ -1423,7 +1505,7 @@ function openIncident(t){
     '<div class="meta">' +
       '<div><span class="id">' + inc.id + '</span><span class="sev ' + inc.sev + '">' + (inc.sev === 'high' ? 'HIGH' : 'ELEVATED') + '</span></div>' +
       '<div>T+' + (t / 1000).toFixed(1) + 's · dur <b class="dur">0.0s</b> · peak <b class="peak">' + inc.peak + '</b></div>' +
-      '<div>driver <b>' + inc.driver + '</b></div>' +
+      '<div>driver <b>' + inc.driver + '</b> · <b>' + inc.subject + '</b></div>' +
     '</div>';
   var empty = $('inc-empty');
   if(empty) empty.remove();
@@ -1650,12 +1732,13 @@ function exportJSON(){
   var out = {
     product: 'EMOTICORE OPS CONSOLE',
     version: '1.0',
+    scoreKind: 'Heuristic blend of expression weights, vocal stress, and an optional lexicon. Not a classifier.',
     exported: new Date().toISOString(),
     sessionStarted: session.started,
     settings: {balance: S.balance, elevated: S.elev, high: S.high},
     summary: sessionSummary(),
     incidents: session.incidents.map(function(i){
-      return {id: i.id, startMs: i.start, endMs: i.end, peak: i.peak, severity: i.sev, driver: i.driver, snapshot: i.thumb};
+      return {id: i.id, startMs: i.start, endMs: i.end, peak: i.peak, severity: i.sev, driver: i.driver, subject: i.subject || '', snapshot: i.thumb};
     }),
     samples: session.samples
   };

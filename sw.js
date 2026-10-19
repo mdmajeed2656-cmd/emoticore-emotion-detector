@@ -1,6 +1,6 @@
 /* Emoticore service worker — stale-while-revalidate for same-origin files.
    Cross-origin requests (CDN engine/models, fonts, speech service) pass through untouched. */
-var CACHE = 'emoticore-v1';
+var CACHE = 'emoticore-v2';
 var ASSETS = [
   './',
   './index.html',

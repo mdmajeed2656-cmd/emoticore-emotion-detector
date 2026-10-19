@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emoticore — Behavioral Threat Detection for Live Environments</title>
-<meta name="description" content="Emoticore fuses live vision and speech analysis into a single behavioral threat picture. Detect intent before it becomes incident.">
+<title>Emoticore — On-device expression and voice demo</title>
+<meta name="description" content="A browser demo that scores seven facial expressions and a hand-written voice heuristic on this machine. Not a threat-detection product, and not a measure of intent.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2338e1ff'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='3' y='3' width='58' height='58' rx='12' fill='%2305070d'/%3E%3Crect x='3' y='3' width='58' height='58' rx='12' fill='none' stroke='%2338e1ff' stroke-width='3.5'/%3E%3Crect x='20' y='20' width='24' height='24' rx='5' fill='url(%23g)'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#05070d">
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Emoticore — Behavioral Threat Detection">
-<meta property="og:description" content="Live camera + voice fused into one threat picture. Try the real demos in your browser — everything on-device.">
+<meta property="og:title" content="Emoticore — On-device expression and voice demo">
+<meta property="og:description" content="Seven facial expressions and a voice heuristic, scored in the browser. Video stays on the device.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -710,22 +710,22 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
       <div class="hero-brandline boot" style="--b:.05s">
         <span class="gl" data-text="EMOTICORE">EMOTICORE</span><span class="cursor"></span>
       </div>
-      <h1 class="boot" style="--b:.15s">Detect <span class="grad">intent</span> before it becomes incident.</h1>
-      <p class="hero-sub boot" style="--b:.3s">Emoticore fuses live camera feeds and speech analysis into one behavioral threat picture — surfacing what humans miss and what legacy systems ignore.</p>
+      <h1 class="boot" style="--b:.15s">Score <span class="grad">affect</span> before you call it a threat.</h1>
+      <p class="hero-sub boot" style="--b:.3s">A personal demo. A small public face model labels seven expressions, and a hand-written formula reads pitch and loudness. Video stays on this machine. The score is not intent.</p>
       <div class="hero-ctas boot" style="--b:.45s">
         <a href="console.html" class="btn btn-primary">Launch the live console <span class="arr">→</span></a>
         <a href="demo.html" class="btn btn-ghost">Try the demos</a>
       </div>
       <div class="hero-metrics boot" style="--b:.6s">
-        <div class="m"><div class="v num"><span data-count="99.2" data-decimals="1">0</span><i>%</i></div><div class="l">Classification accuracy</div></div>
-        <div class="m"><div class="v num">&lt;<span data-count="400">0</span><i>ms</i></div><div class="l">Feed-to-alert latency</div></div>
-        <div class="m"><div class="v num"><span data-count="140">0</span><i>+</i></div><div class="l">Streams per node</div></div>
+        <div class="m"><div class="v num"><span data-count="7">0</span></div><div class="l">Expression classes</div></div>
+        <div class="m"><div class="v num"><span data-count="68">0</span></div><div class="l">Landmarks drawn</div></div>
+        <div class="m"><div class="v num"><span data-count="0">0</span></div><div class="l">Video frames uploaded</div></div>
       </div>
     </div>
 
     <div class="console boot" style="--b:.5s">
       <div class="console-bar">
-        <div class="left"><span class="pip"></span>CAM_04 · Main Concourse</div>
+        <div class="left"><span class="pip"></span>ILLUSTRATION · NOT A LIVE FEED</div>
         <div class="right num" id="console-clock">00:00:00 UTC</div>
       </div>
       <div class="feed">
@@ -734,8 +734,8 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
         <div class="feed-hud num">
           <span class="tl">SUBJ_01 · LOCKED</span>
           <span class="tr">● REC</span>
-          <span class="bl">1920×1080 · 30FPS</span>
-          <span class="br">SNR 34dB</span>
+          <span class="bl">PICTURE · NOT MEASURED</span>
+          <span class="br">NO LIVE SNR</span>
         </div>
       </div>
       <div class="console-tele">
@@ -757,17 +757,17 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
 
 <!-- ============ TRUST ============ -->
 <div class="trust">
-  <div class="trust-label">Deployed where failure is not an option</div>
+  <div class="trust-label">Sectors this kind of product is pitched for — not customers of this demo</div>
   <div class="marquee">
     <div class="marquee-track" id="marquee-track">
-      <span>NORTHGATE AIRPORTS</span>
-      <span>AEGIS TRANSIT AUTHORITY</span>
-      <span>SENTINEL FACILITIES GROUP</span>
-      <span>MERIDIAN STADIUMS</span>
-      <span>HALCYON ENERGY</span>
-      <span>POLARIS PORT AUTHORITY</span>
-      <span>VANTAGE CORPORATE CAMPUSES</span>
-      <span>CIVIC SHIELD INITIATIVE</span>
+      <span>AIRPORTS</span>
+      <span>TRANSIT</span>
+      <span>STADIUMS</span>
+      <span>CAMPUSES</span>
+      <span>ENERGY SITES</span>
+      <span>PORTS</span>
+      <span>PUBLIC SPACES</span>
+      <span>NOT DEPLOYED HERE</span>
     </div>
   </div>
 </div>
@@ -777,21 +777,21 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
   <div class="wrap">
     <div class="sec-head rv">
       <span class="tag">Sensor fusion</span>
-      <h2>Three signals. One verdict.</h2>
-      <p>Voice, face, and behavior are analyzed independently, then fused into a single confidence-weighted threat score your operators can act on instantly.</p>
+      <h2>Three signals. One heuristic.</h2>
+      <p>Face expressions, a voice formula, and an optional word list can be fused in the console into a 0–100 score. It is a demo heuristic. It is not a validated threat model, and nobody is on the other end of it.</p>
     </div>
     <div class="rack rv" style="--d:.1s">
       <div class="bay">
         <div class="bay-id">SIG // VOX</div>
         <h3>Speech Analysis</h3>
-        <p>Vocal stress, cadence shifts, and tonal micro-tremors decoded in real time — flagging distress and deception the ear can't register.</p>
+        <p>Pitch, loudness, jitter, rate, and pauses, scored by a formula in the page. It follows arousal better than mood. It does not detect deception, and it does not speak nine languages.</p>
         <div class="bay-visual"><canvas id="wave-canvas"></canvas></div>
-        <div class="bay-spec"><b>47</b> vocal biomarkers &nbsp;·&nbsp; <b>9</b> languages &nbsp;·&nbsp; SNR-adaptive<br><a href="voice.html" style="color:var(--cyan)">Run the voice demo →</a></div>
+        <div class="bay-spec"><b>12</b> prosody stats &nbsp;·&nbsp; <b>on-device</b> &nbsp;·&nbsp; not clinical<br><a href="voice.html" style="color:var(--cyan)">Run the voice demo →</a></div>
       </div>
       <div class="bay">
         <div class="bay-id">SIG // FACE</div>
         <h3>Facial Emotion AI</h3>
-        <p>Micro-expression scanning across 68 facial landmarks detects fear, anger, and concealment invisible to human observation.</p>
+        <p>A small public network labels seven expressions and draws 68 landmarks on the webcam frame. The dots are a visualization. They are not action units, and the model does not detect concealment.</p>
         <div class="bay-visual">
           <div class="rings">
             <div class="rg"></div>
@@ -800,16 +800,16 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
             <div class="dotgrid"></div>
           </div>
         </div>
-        <div class="bay-spec"><b>68</b> landmarks &nbsp;·&nbsp; <b>27</b> action units &nbsp;·&nbsp; occlusion-tolerant<br><a href="demo.html" style="color:var(--cyan)">Run the camera demo →</a></div>
+        <div class="bay-spec"><b>7</b> expressions &nbsp;·&nbsp; <b>68</b> landmarks drawn &nbsp;·&nbsp; on-device<br><a href="demo.html" style="color:var(--cyan)">Run the camera demo →</a></div>
       </div>
       <div class="bay">
         <div class="bay-id">SIG // SCORE</div>
         <h3>Threat Scoring</h3>
-        <p>Every signal rolls into one live, explainable score — with full audit trails showing exactly why each alert fired.</p>
+        <p>The console blends the face heuristic, vocal stress, and an optional lexicon into one live 0–100 number, then can save a session as a local JSON or CSV file.</p>
         <div class="bay-visual">
           <div class="scorebars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
-        <div class="bay-spec"><b>0–100</b> live index &nbsp;·&nbsp; explainable &nbsp;·&nbsp; full audit log</div>
+        <div class="bay-spec"><b>0–100</b> heuristic &nbsp;·&nbsp; local export &nbsp;·&nbsp; not a classifier</div>
       </div>
     </div>
   </div>
@@ -820,8 +820,8 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
   <div class="wrap">
     <div class="sec-head rv">
       <span class="tag">Pipeline</span>
-      <h2>Feed to alert in under 400 milliseconds.</h2>
-      <p>A four-stage pipeline runs continuously against every connected stream — no batching, no human-in-the-loop delay.</p>
+      <h2>From this camera to an on-screen score.</h2>
+      <p>Four stages, all in this browser. One camera and one microphone. There is no stream farm and no operations center on the other end.</p>
     </div>
     <div class="flow" id="flow">
       <div class="flow-line"><span class="base"></span><span class="draw"></span></div>
@@ -829,28 +829,28 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
         <div class="fstep-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
         <div class="fstep-num">01</div>
         <h3>Capture</h3>
-        <p>Ingest any RTSP camera or mic array — no proprietary hardware.</p>
+        <p>This tab's webcam and microphone. No RTSP ingest and no extra hardware.</p>
       </div>
       <div class="fstep rv" style="--d:.15s">
         <div class="fstep-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg></div>
         <div class="fstep-num">02</div>
         <h3>Analyze</h3>
-        <p>Vision and speech models run in parallel at the edge.</p>
+        <p>Tiny Face Detector, an expression network, and autocorrelation pitch — in the page, not on a server.</p>
       </div>
       <div class="fstep rv" style="--d:.3s">
         <div class="fstep-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l4-4M12 12v6"/></svg></div>
         <div class="fstep-num">03</div>
         <h3>Score</h3>
-        <p>Signals fuse into one confidence-weighted threat index.</p>
+        <p>A weighted heuristic, smoothed so the gauge does not flicker. Not a confidence score from a validated model.</p>
       </div>
       <div class="fstep rv" style="--d:.45s">
         <div class="fstep-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
         <div class="fstep-num">04</div>
         <h3>Alert</h3>
-        <p>Routed to your SOC, radio, or VMS with full context attached.</p>
+        <p>An on-screen incident in the console, plus a file you download. Nothing is dispatched to a SOC.</p>
       </div>
     </div>
-    <div class="flow-latency rv" style="--d:.5s">MEASURED END-TO-END · P95 <b>~380ms</b> · ON-PREM OR VPC</div>
+    <div class="flow-latency rv" style="--d:.5s">SCORED ON THIS MACHINE · NO CLOUD PATH FOR VIDEO OR DSP · TRANSCRIPT IS OPT-IN</div>
   </div>
 </section>
 
@@ -859,13 +859,13 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
   <div class="wrap">
     <div class="sec-head rv">
       <span class="tag">Operations console</span>
-      <h2>What your security team sees. Every second of every shift.</h2>
-      <p>One pane of glass across every stream — live affect telemetry, a rolling threat index, and an auditable event log. The panel below is a simulation — <a href="console.html" style="color:var(--cyan)">launch the real console on your own camera →</a></p>
+      <h2>A picture of a console. Not a shift.</h2>
+      <p>The panel below is a simulation. The bars and the log are not measured. <a href="console.html" style="color:var(--cyan)">Launch the real console on your own camera →</a></p>
     </div>
     <div class="dash rv" style="--d:.1s">
       <div class="dash-bar">
         <div class="l">
-          <span>EMOTICORE OPS v4.2</span>
+          <span>SIMULATED PANEL · NOT LIVE</span>
           <div class="tabs">
             <span class="tab active">CAM_04</span>
             <span class="tab">CAM_07</span>
@@ -882,7 +882,7 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
             <span class="tl">SUBJ_01 · TRACKING</span>
             <span class="tr">● REC</span>
             <span class="bl" id="dash-clock">00:00:00.000</span>
-            <span class="br">H.265 · 30FPS</span>
+            <span class="br">PICTURE · NOT MEASURED</span>
           </div>
         </div>
         <div class="dash-side">
@@ -911,12 +911,12 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
         </div>
       </div>
       <div class="dash-strip num">
-        <div class="cell">STREAMS <b>142</b> <span class="up">▲</span></div>
-        <div class="cell">SUBJECTS TRACKED <b>2,318</b></div>
-        <div class="cell">ALERTS 24H <b>7</b></div>
-        <div class="cell">FALSE-POSITIVE RATE <b>0.8%</b></div>
-        <div class="cell">UPTIME <b>99.99%</b></div>
-        <div class="cell">NODES <b>12/12</b> <span class="up">OK</span></div>
+        <div class="cell">SIM STREAMS <b>—</b></div>
+        <div class="cell">SIM SUBJECTS <b>—</b></div>
+        <div class="cell">SIM ALERTS <b>—</b></div>
+        <div class="cell">ACCURACY <b>NOT MEASURED</b></div>
+        <div class="cell">UPTIME <b>THIS TAB</b></div>
+        <div class="cell">BACKEND <b>NONE</b></div>
       </div>
     </div>
   </div>
@@ -927,27 +927,27 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
   <div class="wrap">
     <div class="sec-head rv">
       <span class="tag">Deployments</span>
-      <h2>Built for environments where seconds decide outcomes.</h2>
-      <p>Emoticore runs on-premises or in your VPC, integrates with existing camera infrastructure, and holds up under real operational load.</p>
+      <h2>Where products like this get pitched.</h2>
+      <p>These cards are the usual sales story. This repository does none of it. It runs one camera and one microphone in a browser tab.</p>
     </div>
     <div class="deploy-grid">
       <div class="dcard rv" style="--d:0s">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 16l20-6-3 9-5-2-3 4-2-7z"/></svg></div>
         <h3>Airports &amp; Transit</h3>
-        <p>Continuous screening across checkpoints and concourses — stress and concealment surfaced before the queue, not after it.</p>
-        <div class="stat">CHECKPOINT THROUGHPUT <b>+31%</b></div>
+        <p>Often pitched as screening for checkpoints. This demo has no queue, no site, and no concealment detector.</p>
+        <div class="stat">DEMO SCOPE <b>1 CAMERA</b></div>
       </div>
       <div class="dcard rv" style="--d:.12s">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17M12 21V9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v12"/><path d="M4 21h16M7 7h1M7 11h1M7 15h1M16 12h1M16 16h1"/></svg></div>
         <h3>Corporate Campuses</h3>
-        <p>Discreet behavioral monitoring for lobbies, trading floors, and executive areas — protection without friction.</p>
-        <div class="stat">MEAN TIME TO ALERT <b>-64%</b></div>
+        <p>Often pitched as lobby monitoring. This demo does not watch a building. Alerts stay on the page that computed them.</p>
+        <div class="stat">ALERTS <b>ON-SCREEN ONLY</b></div>
       </div>
       <div class="dcard rv" style="--d:.24s">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></div>
         <h3>Public Safety</h3>
-        <p>An early-warning layer for stadiums, stations, and public squares — giving first responders the seconds that matter.</p>
-        <div class="stat">CROWD COVERAGE <b>40k+ ppl/site</b></div>
+        <p>Often pitched as crowd warning. This demo covers the faces and the microphone in front of one laptop.</p>
+        <div class="stat">COVERAGE <b>ONE BROWSER TAB</b></div>
       </div>
     </div>
   </div>
@@ -957,9 +957,9 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
 <section class="quote">
   <div class="wrap">
     <div class="quote-inner rv">
-      <div class="quote-mark">Field report — Tier-1 international airport</div>
-      <blockquote>"Emoticore flagged a de-escalation window our officers couldn't see. That's the difference between <em>an incident report</em> and <em>a headline</em>."</blockquote>
-      <cite>DIRECTOR OF SECURITY OPERATIONS · 41M PASSENGERS / YR</cite>
+      <div class="quote-mark">Scope note — not a field report</div>
+      <blockquote>"There is no airport deployment and no director of security behind this page. The live console is a local demo with demo-grade models."</blockquote>
+      <cite>PERSONAL PROJECT · ONE BROWSER · 2026</cite>
     </div>
   </div>
 </section>
@@ -984,7 +984,7 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
     <div class="f-top">
       <div class="f-brand">
         <a href="#" class="brand"><span class="brand-mark"></span>EMOTI<em>CORE</em></a>
-        <p>AI-powered behavioral intelligence for security teams that can't afford to miss a signal.</p>
+        <p>A personal demo of on-device face and voice scoring. Not a security product, and not a company.</p>
       </div>
       <div class="f-col">
         <h5>Product</h5>
@@ -994,31 +994,31 @@ section{scroll-margin-top:calc(var(--nav-h) + 12px);}
         <a href="#platform">Platform</a>
       </div>
       <div class="f-col">
-        <h5>Company</h5>
-        <a href="#">About</a>
-        <a href="#">Careers</a>
-        <a href="#">Newsroom</a>
-        <a href="#">Contact</a>
+        <h5>Project</h5>
+        <a href="docs/project-report.html">Project report</a>
+        <a href="docs/presentation.html">Slide deck</a>
+        <a href="docs/resume-notes.html">Resume notes</a>
+        <a href="README.md">Readme</a>
       </div>
       <div class="f-col">
-        <h5>Resources</h5>
-        <a href="#">Documentation</a>
-        <a href="#">API reference</a>
-        <a href="#">Deployment guide</a>
-        <a href="#">System status</a>
+        <h5>What runs</h5>
+        <a href="demo.html">7 expression classes</a>
+        <a href="voice.html">Prosody heuristic</a>
+        <a href="console.html">Local session export</a>
+        <a href="#pipeline">Browser pipeline</a>
       </div>
       <div class="f-col">
-        <h5>Legal</h5>
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-        <a href="#">DPA</a>
-        <a href="#">Responsible AI</a>
+        <h5>Limits</h5>
+        <a href="docs/project-report.html">Demo-grade models</a>
+        <a href="console.html">Transcript is opt-in</a>
+        <a href="demo.html">Landmarks are not action units</a>
+        <a href="voice.html">Not a clinical measure</a>
       </div>
     </div>
     <div class="f-bottom">
-      <span>© 2026 Emoticore Systems, Inc. · AI-powered behavioral intelligence.</span>
-      <div class="certs"><span>SOC 2 TYPE II</span><span>GDPR-READY</span><span>ISO 27001</span></div>
-      <div class="status"><span class="pip"></span>ALL SYSTEMS OPERATIONAL</div>
+      <span>© 2026 Emoticore · personal demo · not a company.</span>
+      <div class="certs"><span>ON-DEVICE</span><span>NO ACCOUNT</span><span>DEMO-GRADE</span></div>
+      <div class="status"><span class="pip"></span>NO BACKEND · LOCAL ONLY</div>
     </div>
   </div>
 </footer>
@@ -1240,7 +1240,7 @@ function makeFeedSim(canvasId){
     /* label above box */
     ctx.font = '9px "IBM Plex Mono", monospace';
     ctx.fillStyle = 'rgba(56,225,255,0.85)';
-    ctx.fillText('SUBJ_01 · CONF 0.97', bx, by - 7);
+    ctx.fillText('SUBJ_01 · PICTURE', bx, by - 7);
 
     /* vignette */
     var vg = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.3, W/2, H/2, Math.max(W,H)*0.75);
@@ -1310,16 +1310,16 @@ makeFeedSim('dash-canvas');
   var log = document.getElementById('hero-log');
   if(!log) return;
   var lines = [
-    {c:'info', t:'subject acquired · conf 0.97'},
-    {c:'ok',   t:'VOX stream locked · SNR 34dB'},
-    {c:'info', t:'baseline established · calm 0.88'},
-    {c:'info', t:'AU scan nominal · 27/27 units'},
-    {c:'warn', t:'micro-expression Δ · AU04+AU07'},
-    {c:'info', t:'stress vector 0.21 → 0.19'},
-    {c:'ok',   t:'threat index recalc · 18 LOW'},
-    {c:'info', t:'gait profile matched · 0.94'},
-    {c:'info', t:'vocal cadence nominal'},
-    {c:'ok',   t:'fusion cycle complete · 380ms'}
+    {c:'info', t:'illustration only · not a live feed'},
+    {c:'ok',   t:'no camera is attached to this picture'},
+    {c:'info', t:'real demo · 7 expression classes'},
+    {c:'info', t:'landmarks are drawn · not action units'},
+    {c:'warn', t:'no accuracy number is measured here'},
+    {c:'info', t:'voice score is a heuristic'},
+    {c:'ok',   t:'nothing in this panel is dispatched'},
+    {c:'info', t:'open the console for a real camera'},
+    {c:'info', t:'video frames uploaded · 0'},
+    {c:'ok',   t:'picture looping · not a latency claim'}
   ];
   var idx = 0;
   function stamp(){
@@ -1372,12 +1372,12 @@ makeFeedSim('dash-canvas');
   if(!val) return;
   var ARC = 198; /* dash length of the visible 270° arc */
   var states = [
-    {v: 18, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Baseline behavior. All subjects within nominal affect ranges.'},
-    {v: 34, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Minor variance detected. Continuing passive observation.'},
-    {v: 58, cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Stress cluster forming near checkpoint B. Operator notified.'},
-    {v: 72, cls:'t-high', color:'#f87171', label:'HIGH',     desc:'Converging indicators on SUBJ_01. Alert dispatched to SOC.'},
-    {v: 41, cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'De-escalation in progress. Index trending down.'},
-    {v: 22, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Situation resolved. Returning to baseline monitoring.'}
+    {v: 18, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Simulated gauge. Nothing here is a live subject.'},
+    {v: 34, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Simulated gauge. This number is not measured.'},
+    {v: 58, cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Simulated gauge. No operator is notified.'},
+    {v: 72, cls:'t-high', color:'#f87171', label:'HIGH',     desc:'Simulated gauge. No alert leaves this page.'},
+    {v: 41, cls:'t-elev', color:'#fbbf24', label:'ELEVATED', desc:'Simulated gauge. The index is drifting for show.'},
+    {v: 22, cls:'t-low',  color:'#34d399', label:'LOW',      desc:'Simulated gauge. Open the console for a real camera.'}
   ];
   var i = 0;
   function apply(){
